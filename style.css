@@ -1,0 +1,115 @@
+body {
+  background-color: rgb(128, 35, 35);
+}
+
+table * {
+  font-weight: bold;
+}
+
+button {
+  text-align: center;
+  border: 0em;
+  font: inherit;
+  line-height: 1;
+}
+
+button:hover,
+button:focus {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+}
+
+#newListButton {
+  font-weight: bold;
+  font-size: 1.5em;
+  background-color: goldenrod;
+  color: rgb(128, 35, 35);
+  margin: 0.5em;
+  box-sizing: border-box;
+  padding: 0.5em 2em;
+}
+
+.alignLeft {
+  text-align: left;
+}
+
+.alignRight {
+  text-align: right;
+}
+
+table.list {
+  float: left;
+  margin: 0.5em;
+  background-color: goldenrod;
+  border: 0.3em solid black;
+  border-spacing: 0.4em;
+}
+
+table.list th {
+  color: maroon;
+  font-size: 1.5em;
+}
+
+table.list tr.newTaskRow td {
+  text-align: center;
+  display: block;
+  margin: auto;
+}
+
+table.list tr.newTaskRow button {
+  background-color: rgb(128, 35, 35);
+  color: goldenrod;
+  margin: 0.5em;
+  padding: 1em 2em;
+}
+
+table.task {
+  background-color: rgb(160, 160, 160);
+  table-layout: auto;
+  width: 17em;
+  border: 0.4em solid black;
+}
+
+table.task button.editTaskButton {
+  float: right;
+  margin-bottom: -100%;
+  font-size: 0.7em;
+}
+
+table.task table.labelTable {
+  border-spacing: 0.3em;
+  table-layout: fixed;
+  
+  /* Flex stuff */
+  display: flex;
+  flex-flow: wrap;
+  column-gap: 0.3em;
+  row-gap: 0.3em;
+  width: 13em; /* {<<<} */
+}
+
+table.task td.label {
+  color: black;
+  background-color: aliceblue;
+  font-size: 0.9em;
+  vertical-align: middle;
+  padding: 0.1em;
+
+  /* Adds elipses when text overflows the fixed width located at {<<<} */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+table.task td.title {
+  color: maroon;
+  font-size: 1.2em;
+}
+
+table.task td.dates {
+  font-size: 1em;
+}
+
+table.task td.config {
+  font-size: 0.8em;
+  font-style: italic;
+}

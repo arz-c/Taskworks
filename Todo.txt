@@ -1,0 +1,4 @@
+☑ Have colours associated with labels
+    ☑ Change label background colour to associated colour
+☑ Add "Create task" and "Create list" buttons
+◻ Make tasks and lists editable
