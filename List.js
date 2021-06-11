@@ -1,16 +1,29 @@
 class List {
-    constructor(title) {
+    constructor(title, label) {
         this.title = title || "";
         this.tasks = [];
+        this.label = label;
 
+        // Creating the list table
         this.table = document.createElement("table");
         this.table.className = "list";
+        console.log(this.label)
+        this.table.style = "background-color: " + Label.arrToCSSColourString(this.label.colour);
         
+        // Creating the title text
         let thead = this.table.createTHead();
         addTextToParent(thead, "th", null, this.title);
+        
+        // makes title's colour = label's colour, and contrasts the background with it
+        /*titleTH.style =
+            "background-color: " + Label.arrToCSSColourString(hueInvert(this.label.colour)) +
+            "; color: " + Label.arrToCSSColourString(this.label.colour);*/
+        
+        // Moving new list button
         let newListButton = document.getElementById("newListButton")
         document.body.insertBefore(this.table, newListButton);
 
+        // Creating the "Create new task" button
         let newTaskButton = document.createElement("button");
         newTaskButton.innerHTML = "Create new task";
         newTaskButton.onclick = this.newTaskButtonOnclick;
@@ -38,28 +51,16 @@ class List {
         let newTask = new Task({
             title: prompt("Title: ") || null,
             labels: new function() {
-                let op = [];
-                let total = parseInt(prompt("Number of labels: "));
-                for(let i = 1; i < total + 1; i++) {
-                    let text = prompt("Name for label #" + i + ": ");
-                    let colour = prompt("Colour for label #" + i + " (R, G, B): ").replaceAll(' ', '').split(',');
-                    for(let i = 0; i < colour.length; i++) {
-                        colour[i] = parseInt(colour[i]);
-                    }
-                    op.push({
-                        text: text,
-                        colour: colour
-                    });
-                }
-                return op;
+                let op = Label.parseInput(prompt("Available Labels:\n" + allLabelsToString() + "\nLabel Indexes (0, 2, 1, ...): "));
+                return (op.length > 0) ? op : null;
             },
             doing: {
                 start: prompt("Doing Start Date (MM/DD/YYYY): ", todaysDate) || null,
                 end: prompt("Doing End Date (MM/DD/YYYY): ", todaysDate) || null
             },
             due: prompt("Due Date (MM/DD/YYYY): ", todaysDate) || null,
-            dotw: prompt("Days of the week (DDD DDD DDD ...): ", "All days") || null,
-            priority: prompt("Priority (low, medium, high): ") || null
+            dotw: prompt("Days of The Week (DDD DDD DDD ...): ", "All days") || null,
+            priority: prompt("Priority (low, medium, high): ", "medium") || null
         });
         this.list.addTask(newTask);
     }

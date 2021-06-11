@@ -1,3 +1,12 @@
+:root {
+  --major-background-colour: rgb(128, 35, 35);
+  --major-text-colour: goldenrod;
+  --minor-background-colour: rgb(255, 200, 200);
+  --minor-text-colour: maroon;
+  --heading-text-size: 1.5em;
+  --task-width: 17em;
+}
+
 body {
   background-color: rgb(128, 35, 35);
 }
@@ -19,10 +28,10 @@ button:focus {
 }
 
 #newListButton {
+  color: var(--major-background-colour);
+  background-color: var(--major-text-colour);
   font-weight: bold;
-  font-size: 1.5em;
-  background-color: goldenrod;
-  color: rgb(128, 35, 35);
+  font-size: var(--heading-text-size);
   margin: 0.5em;
   box-sizing: border-box;
   padding: 0.5em 2em;
@@ -37,16 +46,17 @@ button:focus {
 }
 
 table.list {
+  background-color: var(--major-text-colour);
   float: left;
   margin: 0.5em;
-  background-color: goldenrod;
-  border: 0.3em solid black;
+  border: 0.4em solid black;
   border-spacing: 0.4em;
 }
 
 table.list th {
-  color: maroon;
-  font-size: 1.5em;
+  color: var(--minor-text-colour);
+  background-color: var(--minor-background-colour);
+  font-size: var(--heading-text-size);
 }
 
 table.list tr.newTaskRow td {
@@ -56,22 +66,24 @@ table.list tr.newTaskRow td {
 }
 
 table.list tr.newTaskRow button {
-  background-color: rgb(128, 35, 35);
-  color: goldenrod;
+  color: var(--major-text-colour);
+  background-color: var(--major-background-colour);
   margin: 0.5em;
   padding: 1em 2em;
 }
 
 table.task {
-  background-color: rgb(160, 160, 160);
+  background-color: rgb(230, 230, 230);
   table-layout: auto;
-  width: 17em;
-  border: 0.4em solid black;
+  width: var(--task-width);
+  border: 0.3em solid black;
 }
 
 table.task button.editTaskButton {
+  color:white;
+  background-color: black;
   float: right;
-  margin-bottom: -100%;
+  margin-bottom: -100% + 0.5em;
   font-size: 0.7em;
 }
 
@@ -84,12 +96,13 @@ table.task table.labelTable {
   flex-flow: wrap;
   column-gap: 0.3em;
   row-gap: 0.3em;
-  width: 13em; /* {<<<} */
+  width: var(--task-width) - 4; /* {<<<} */
 }
 
 table.task td.label {
-  color: black;
-  background-color: aliceblue;
+  color: var(--minor-text-colour);
+  background-color: var(--minor-background-colour);
+  border: 0.4em solid;
   font-size: 0.9em;
   vertical-align: middle;
   padding: 0.1em;
@@ -101,7 +114,7 @@ table.task td.label {
 }
 
 table.task td.title {
-  color: maroon;
+  color: var(--minor-text-colour);
   font-size: 1.2em;
 }
 

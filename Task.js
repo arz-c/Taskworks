@@ -1,7 +1,6 @@
 class Task {
     constructor(data) {
-        this.title = data.title;
-        this.labels = null;
+        this.title = null;
         this.labels = null;
         this.doing = {
             start: null,
@@ -11,6 +10,7 @@ class Task {
         this.due = null;
         this.priority = null;
 
+        this.title = data.title;
         this.labels = data.labels;
         this.doing.start = data.doing.start;
         this.doing.end = data.doing.end;
@@ -25,8 +25,8 @@ class Task {
         return MONTH_STRINGS[date.getMonth()] + " " + date.getDate();
     }
 
-    _getInfo() {
-        let doingString = null;
+    _getInfoStrings() {
+        let doingString = "";
         if(this.doing.start != null) {
             doingString = "Do: ";
             if(this.doing.end == null || this.doing.start == this.doing.end) {
@@ -45,12 +45,12 @@ class Task {
             doing: doingString,
             due: (this.due != null) ? "Due: " + this._numericToWrittenDate(this.due) : "",
             dotw: (this.dotw != null && this.dotw != "All days") ? this.dotw : "",
-            priority: (this.priority != null) ? this.priority.toLowerCase() : ""
+            priority: (this.priority != null) ? "Priority: " + this.priority.toLowerCase() : ""
         };
     }
       
     createTable(parent) {
-        let info = this._getInfo();
+        let info = this._getInfoStrings();
         let table = document.createElement("table");
         table.className = "task";
 
@@ -65,14 +65,10 @@ class Task {
         let labelTable = document.createElement("table"); 
         labelTable.className = "labelTable"
         for(let i = 0; i < info.labels.length; i++) {
-            let label = info.labels[i];
-            let colour = label.colour;
-            addTextToParent(labelTable, "td", "label", label.text).style =
-            "background-color: rgb(" +
-                colour[0] + ", " + 
-                colour[1] + ", " + 
-                colour[2] +
-            ")";
+            let label = allLabels[info.labels[i]];
+            addTextToParent(labelTable, "td", "label", label.title).style =
+                "border-color: " + Label.arrToCSSColourString(label.colour);/* +
+                "; color: " + Label.arrToCSSColourString(hueInvert(label.colour));*/
         }
 
         // Creating edit task button
@@ -97,7 +93,7 @@ class Task {
         // CONFIG ROW
         let configRow = table.insertRow();
         addTextToParent(configRow, "td", "config alignLeft", info.dotw).colSpan = 1;
-        addTextToParent(configRow, "td", "config alignRight", "Priority: " + info.priority).colSpan = 1;
+        addTextToParent(configRow, "td", "config alignRight", info.priority).colSpan = 1;
     
         parent.appendChild(table);
     }
