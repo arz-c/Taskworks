@@ -7,8 +7,7 @@ class List {
         // Creating the list table
         this.table = document.createElement("table");
         this.table.className = "list";
-        console.log(this.label)
-        this.table.style = "background-color: " + Label.arrToCSSColourString(this.label.colour);
+        this.table.style = "background-color: " + Label.arrToCSSColourString(allLabels[this.label].colour);
         
         // Creating the title text
         let thead = this.table.createTHead();
@@ -39,7 +38,17 @@ class List {
 
     addTask(task) {
         this.tasks.push(task);
-        task.createTable(
+        if(task.labels != null) {
+            let mainLabelI = task.labels.indexOf(this.label);
+            switch(mainLabelI == -1) {
+                case false:
+                    task.labels.splice(mainLabelI, 1) // remove it
+                case true:
+                    task.labels.unshift(this.label) // add to start
+                    break;
+            }
+        }
+        task.createOrUpdateTable(
             this.table.insertRow(
                 this.tasks.length - 1
             )
@@ -47,21 +56,8 @@ class List {
     }
 
     newTaskButtonOnclick() {
-        let todaysDate = getTodaysNumericDate();
-        let newTask = new Task({
-            title: prompt("Title: ") || null,
-            labels: new function() {
-                let op = Label.parseInput(prompt("Available Labels:\n" + allLabelsToString() + "\nLabel Indexes (0, 2, 1, ...): "));
-                return (op.length > 0) ? op : null;
-            },
-            doing: {
-                start: prompt("Doing Start Date (MM/DD/YYYY): ", todaysDate) || null,
-                end: prompt("Doing End Date (MM/DD/YYYY): ", todaysDate) || null
-            },
-            due: prompt("Due Date (MM/DD/YYYY): ", todaysDate) || null,
-            dotw: prompt("Days of The Week (DDD DDD DDD ...): ", "All days") || null,
-            priority: prompt("Priority (low, medium, high): ", "medium") || null
-        });
+        let newTask = new Task({labels: [this.list.label]});
+        TaskEditor.openWindow(newTask)
         this.list.addTask(newTask);
     }
 }

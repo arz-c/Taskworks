@@ -1,5 +1,6 @@
 const DAY_STRINGS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_STRINGS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const PRIORITY_LEVELS = ["Low", "Medium", "High"];
 
 let allLabels = [];
 
@@ -18,14 +19,12 @@ function getTodaysNumericDate() {
     return parseInt(now.getMonth()) + 1 + '/' + now.getDate() + '/' + now.getFullYear();
 }
 
-function allLabelsToString() {
-    let str = "";
+function getAllLabelsStrArray() {
+    let arr = [];
     for(let i = 0; i < allLabels.length; i++) {
-        str += i + ": "
-        str += allLabels[i].toString();
-        str += "\n";
+        arr.push(allLabels[i].toString());
     }
-    return str;
+    return arr;
 }
 
 function getReverseGreyscale(colour) {

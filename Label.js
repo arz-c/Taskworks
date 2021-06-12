@@ -2,6 +2,8 @@ class Label {
     constructor(title, colour) {
         this.title = title,
         this.colour = colour
+        // IMPORTANT: whenever a new label is added to allLabels, TaskEditor.updateLabels() must be called
+        // it can't be called from here because by the time it would be called, the label would not be appended to allLabels yet
     }
 
     static parseInput(inputStr) {
@@ -23,6 +25,6 @@ class Label {
     }
 
     toString() {
-        return this.title + " (" + this.colour.toString() + ")";
+        return this.title/* + " (" + this.colour.toString() + ")"*/;
     }
 }
