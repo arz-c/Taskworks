@@ -1,5 +1,6 @@
 class Task {
     constructor(data) {
+        this.list = null; // this property is always set by its parent List
         // if undefined, will set to null, else, will set to given value
         this.title = data.title || null;
         this.labels = data.labels || null;
@@ -77,13 +78,19 @@ class Task {
     }
       
     createOrUpdateTable(parent) {
-        let info = this._getInfoStrings();
-        let table = document.createElement("table");
-        table.className = "task";
-
         if(this.elements == undefined) { // if this is the first time the table is being drawn
             this.elements = [];
         };
+
+        let info = this._getInfoStrings();
+
+        let table;
+        if(this.elements.table == undefined) {
+            table = document.createElement("table");
+            table.className = "task";
+            this.elements.table = table;
+        } else
+            table = this.elements.table;
 
         // HEADER ROW
 
@@ -177,5 +184,12 @@ class Task {
         this.dotw = data.dotw;
         this.due = data.due;
         this.priority = data.priority;
+    }
+
+    delete() {
+        if(this.list)
+            this.list.removeTask(this);
+        this.elements.table.remove();
+        delete this;
     }
 }

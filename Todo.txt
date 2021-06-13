@@ -1,5 +1,11 @@
-☑ Have colours associated with labels
-    ◻ Change label background colour to associated colour
-☑ Add "Create task" and "Create list" buttons
-◻ Make tasks and lists editable
-◻ Make tasks and lists moveable (reorderable)
+- Make UI for label editing
+- Make tasks and lists editable
+- Make tasks and lists moveable (reorderable)
+- Make due text change colour when date is approaching
+
+==== Done ====
+- Have colours associated with labels
+    - Change label background colour to associated colour
+- Add "Create task" and "Create list" buttons
+- Reset task editor after hitting save/cancel
+- Fix task editor CSS

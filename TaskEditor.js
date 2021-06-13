@@ -1,64 +1,4 @@
 class TaskEditor {
-     static _createLabelElement(htmlFor, innerHTML, doBold = false) {
-        let label = document.createElement("label");
-        let elem = label;
-        if(doBold) {
-            let boldText = document.createElement("b");
-            label.appendChild(boldText);
-            elem = boldText;
-        }
-        
-        elem.htmlFor = htmlFor;
-        elem.innerHTML = innerHTML;
-        return elem;
-    }
-    
-    static _createInputElement(type, name, value, extra = null) {
-        var inp = document.createElement("input");
-        inp.setAttribute("type", type);
-        inp.setAttribute("name", name);
-        inp.setAttribute("value", value);
-        if(extra != null) {
-            switch(type) {
-                case "text":
-                    inp.setAttribute("placeholder", extra);
-                    break;
-                case "checkbox":
-                case "radio":
-                    if(extra != null) // adding this check because setting attribute to false checks the radio button for some reason
-                        inp.setAttribute("checked", extra);
-                    break;
-            }
-        }
-        return inp;
-    }
-    
-    static _createSubmitButtonElement(className, innerHTML, onClick = null) {
-        let submitBtn = document.createElement("button");
-        submitBtn.className = className;
-        submitBtn.innerHTML = innerHTML;
-        if(onClick)
-            submitBtn.addEventListener("click", onClick);
-        return submitBtn;
-    }
-    
-    static _addTextInputElements(form, name, value, formattedName) {
-        form.appendChild(TaskEditor._createLabelElement(name, formattedName, true))
-        form.appendChild(TaskEditor._createInputElement("text", name, value, "Enter " + formattedName));
-    }
-    
-    static _addListInputElements(form, type, content, name, formattedName, defaultIndicies = []) {
-        form.appendChild(TaskEditor._createLabelElement(name, formattedName, true));
-        form.appendChild(document.createElement("br"));
-        for(let i = 0; i < content.length; i++) {
-            let c = content[i];
-            form.appendChild(TaskEditor._createInputElement(type, name, i, defaultIndicies.includes(i) ? true : null));
-            form.appendChild(TaskEditor._createLabelElement(name, c));
-        }
-        form.appendChild(document.createElement("br"));
-        form.appendChild(document.createElement("br"));
-    }
-
     static _addLabelInputElements(form, type, content, name, formattedName, defaultIndex = []) {
         let toAppend = false;
         let div = document.getElementById("labelsDiv");
@@ -67,18 +7,14 @@ class TaskEditor {
             div.id = "labelsDiv";
             toAppend = true;
         }
-        TaskEditor._addListInputElements(div, type, content, name, formattedName, defaultIndex);
+        Form.addListInputElements(div, type, content, name, formattedName, defaultIndex);
         if(toAppend)
             form.appendChild(div);
     }
-    
+
     static init() {
         // Creating form
-        let div = document.createElement("div");
-        div.className = "form-popup";
-        div.id = "editTaskForm";
-        let form = document.getElementById("taskEditorForm");
-        form.className = "form-container";
+        let [container, div, form] = Form.createFormUsingExistingID("taskEditorForm");
         
         TaskEditor.div = div;
         TaskEditor.form = form;
@@ -89,34 +25,37 @@ class TaskEditor {
         form.appendChild(header);
         
         // Title
-        TaskEditor._addTextInputElements(form, "title", "", "Title");
+        Form.addTextInputElements(form, "title", "Title");
     
         // Labels (checkboxes)
         TaskEditor._addLabelInputElements(form, "checkbox", getAllLabelsStrArray(), "labels", "Labels");
 
         // Doing Dates
-        TaskEditor._addTextInputElements(form, "doingStart", "", "Start Doing Date");
-        TaskEditor._addTextInputElements(form, "doingEnd", "", "End Doing Date");
+        Form.addTextInputElements(form, "doingStart", "Start Doing Date");
+        Form.addTextInputElements(form, "doingEnd", "End Doing Date");
 
         // Due Date
-        TaskEditor._addTextInputElements(form, "due", "", "Due Date");
+        Form.addTextInputElements(form, "due", "Due Date");
     
         // DOTW (checkboxes)
-        TaskEditor._addListInputElements(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
+        Form.addListInputElements(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
     
         // Priority (radio button)
-        TaskEditor._addListInputElements(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
+        Form.addListInputElements(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
     
-        form.appendChild(TaskEditor._createSubmitButtonElement("btn", "Submit", TaskEditor.save));
-        form.appendChild(TaskEditor._createSubmitButtonElement("btn cancel", "Cancel", TaskEditor.closeWindow));
-    
+        // Buttons
+        form.appendChild(Form.createSubmitButtonElement("Save", TaskEditor.save));
+        form.appendChild(Form.createSubmitButtonElement("Cancel", TaskEditor.closeWindow, "cancel"));
+        form.appendChild(Form.createSubmitButtonElement("Delete", TaskEditor.deleteTask));
+
+        // Heirarchy
         div.appendChild(form);
-        document.body.appendChild(div);
+        container.appendChild(div);
     }
 
     static updateLabels() {
-        document.getElementById("labelsDiv").innerHTML = '' // clear all children;
-        TaskEditor._addLabelInputElements(TaskEditor.form, "checkbox", getAllLabelsStrArray(), "labels", "Labels");
+        document.getElementById("labelsDiv").innerHTML = ""; // clear all children;
+        TaskEditor._addLabelInputElements(TaskEditor.form, "checkbox", getAllLabelsStrArray(), "labels", "Labels"); // add current labels
     }
 
     static openWindow(task) {
@@ -152,16 +91,20 @@ class TaskEditor {
                             c.value = getTodaysNumericDate();
                         break;
                     case "dotw":
-                        if(task.dotw == null)
-                            continue;
-                        c.checked = task.dotw[dotwI];
-                        dotwI++;
+                        if(task.dotw != null) {
+                            c.checked = task.dotw[dotwI];
+                            dotwI++;
+                        } else
+                            c.checked = true;
                         break;
                     case "priority":
-                        if(task.priority == null)
-                            continue;
-                        if(task.priority == prioI)
-                            c.checked = true;
+                        if(task.priority != null) {
+                            if(task.priority == prioI) 
+                                c.checked = true;
+                        } else {
+                            if(prioI == 0)
+                                c.checked = true;
+                        }
                         prioI++;
                         break;
                 }
@@ -235,9 +178,13 @@ class TaskEditor {
                 }
             }
         }
-        //console.log(formData);
         TaskEditor.editingTask.updateInfo(formData);
         TaskEditor.editingTask.createOrUpdateTable();
+        TaskEditor.closeWindow();
+    }
+
+    static deleteTask() {
+        TaskEditor.editingTask.delete();
         TaskEditor.closeWindow();
     }
 }

@@ -3,6 +3,7 @@
   --major-text-colour: goldenrod;
   --minor-background-colour: rgb(255, 200, 200);
   --minor-text-colour: maroon;
+  --contrast-background-colour: rgb(230, 230, 230);
   --heading-text-size: 1.5em;
   --task-width: 17em;
 }
@@ -73,7 +74,7 @@ table.list tr.newTaskRow button {
 }
 
 table.task {
-  background-color: rgb(230, 230, 230);
+  background-color: var(--contrast-background-colour);
   table-layout: auto;
   width: var(--task-width);
   border: 0.3em solid black;
@@ -127,55 +128,64 @@ table.task td.config {
   font-style: italic;
 }
 
-.form-popup {
-  display: none;
+#uiContainer {
   position: fixed;
-  bottom: 0;
-  right: 15px;
-  border: 3px solid #f1f1f1;
+  bottom: 0em;
+  right: 0em;
+  display: flex;
+  align-items: flex-end;
+}
+
+.formPopup {
+  display: none;
+  border: 3px solid black;
   z-index: 9;
+  margin: 0.5em;
 }
 
-/* Add styles to the form container */
-.form-container {
-  max-width: 325px;
-  padding: 10px;
-  background-color: white;
+.formContainer {
+  max-width: 20em;
+  padding: 0.5em;
+  background-color: var(--minor-background-colour);
 }
 
-/* Full-width input fields */
-.form-container input[type=text], .form-container input[type=password] {
+.formContainer input[type=text] {
   width: 90%;
-  padding: 15px;
-  margin: 5px 0 22px 0;
+  padding: 1em;
+  margin: 0.3em 0 1.2em 0;
   border: none;
-  background: #f1f1f1;
+  background: var(--contrast-background-colour);
+  /*font-size: 0.9em;*/
 }
 
-/* When the inputs get focus, do something */
-.form-container input[type=text]:focus, .form-container input[type=password]:focus {
+.formContainer h1 {
+  color: var(--major-text-colour);
+  background-color: var(--major-background-colour);
+  text-align: center;
+  padding: 0.3em;
+}
+
+.formContainer .header {
+  color: var(--minor-text-colour);
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.formContainer input[type=text]:focus {
   background-color: #ddd;
   outline: none;
 }
 
-/* Set a style for the submit/login button */
-.form-container .btn {
-  background-color: #04AA6D;
+.formContainer button {
+  background-color: var(--major-background-colour);
   color: white;
-  padding: 16px 20px;
+  padding: 1em 1.2em;
   border: none;
   cursor: pointer;
   width: 100%;
-  margin-bottom:10px;
-  opacity: 0.8;
+  margin-bottom: 0.7em;
 }
 
-/* Add a red background color to the cancel button */
-.form-container .cancel {
-  background-color: red;
-}
-
-/* Add some hover effects to buttons */
-.form-container .btn:hover, .open-button:hover {
-  opacity: 1;
+.formContainer .cancel {
+  background-color: var(--major-text-colour);
 }

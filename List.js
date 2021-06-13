@@ -37,6 +37,7 @@ class List {
     }
 
     addTask(task) {
+        task.list = this;
         this.tasks.push(task);
         if(task.labels != null) {
             let mainLabelI = task.labels.indexOf(this.label);
@@ -53,6 +54,10 @@ class List {
                 this.tasks.length - 1
             )
         );
+    }
+
+    removeTask(task) {
+        this.tasks.splice(this.tasks.indexOf(task), 1);
     }
 
     newTaskButtonOnclick() {

@@ -1,6 +1,7 @@
 let lists = [];
 
 TaskEditor.init();
+LabelEditor.init();
 
 allLabels.push(new Label("AP", [150, 255, 150]));
 allLabels.push(new Label("Strings", [250, 250, 150]));

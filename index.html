@@ -10,11 +10,16 @@
 </head>
 <body>
     <button id="newListButton" onclick="newListButtonOnclick()"> Create new list </button>
-    <form id="taskEditorForm" onsubmit="return false"></form>
+    <div id="uiContainer">
+        <form id="taskEditorForm" onsubmit="return false"></form>
+        <form id="labelEditorForm" onsubmit="return false"></form>
+    </div>
     <script src="global.js"></script>
     <script src="Label.js"></script>
     <script src="Task.js"></script>
     <script src="List.js"></script>
+    <script src="Form.js"></script>
+    <script src="LabelEditor.js"></script>
     <script src="TaskEditor.js"></script>
     <script src="main.js"></script>
 </body>
