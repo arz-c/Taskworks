@@ -1,9 +1,12 @@
 class Label {
     constructor(title, colour) {
-        this.title = title,
-        this.colour = colour
+        this.title = title || "New label";
+        this.colour = colour || [0, 0, 0];
         // IMPORTANT: whenever a new label is added to allLabels, TaskEditor.updateLabels() must be called
-        // it can't be called from here because by the time it would be called, the label would not be appended to allLabels yet
+        // it can't be called from here because by the time it would be called, the new label would not be appended to allLabels yet
+        
+        // in the case that an existing label is updated, updateLabelsEverywhere(), a global function, must be called to update
+        // all labels present within all tasks
     }
 
     static parseInput(inputStr) {
@@ -24,7 +27,47 @@ class Label {
         ")";
     }
 
+    // only need these functions for testing purposes, so I can still hardcode lists more easily using RGB instead of hex in main.js:
+    static hexToArr(hex) { 
+        // #XXXXXX -> ["XX", "XX", "XX"]
+        let result = hex.match(/[A-Za-z0-9]{2}/g);
+
+        // ["XX", "XX", "XX"] -> [n, n, n]
+        result = result.map(function(v) { return parseInt(v, 16) });
+
+        return result;
+    }
+
+    static arrToHex(arr) {
+        return '#' + arr.map(x => {
+            const hex = x.toString(16)
+            return hex.length === 1 ? '0' + hex : hex
+        }).join('');
+    }
+    // -----------------
+
     toString() {
         return this.title/* + " (" + this.colour.toString() + ")"*/;
+    }
+
+    updateInfo(data) {
+        this.title = data.title;
+        this.colour = data.colour;
+    }
+
+    delete() {
+        // can't use updateLabelsEverywhere() here because need to remove the deleted label from each task's labelIndices before calling the task's createOrUpdateTable function
+        let toBeDeletedL = allLabels.indexOf(this); // toBeDeletedL is actually an index as well, since all labels are based on their index in allLabels
+        for(let list of allLists) {
+            for(let task of list.tasks) {
+                let toBeDeletedI = task.labelIndices.indexOf(toBeDeletedL);
+                if(toBeDeletedI != -1)
+                    task.labelIndices.splice(toBeDeletedI, 1);
+                task.createOrUpdateTable();
+            }
+        }
+        allLabels.splice(allLabels.indexOf(this), 1);
+        TaskEditor.updateLabels();
+        delete this;
     }
 }

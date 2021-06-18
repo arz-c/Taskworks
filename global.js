@@ -3,6 +3,7 @@ const MONTH_STRINGS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "
 const PRIORITY_LEVELS = ["Low", "Medium", "High"];
 
 let allLabels = [];
+let allLists = [];
 
 function addTextToParent(parent, elementType, className, text,) {
     let element = document.createElement(elementType);
@@ -19,15 +20,25 @@ function getTodaysNumericDate() {
     return parseInt(now.getMonth()) + 1 + '/' + now.getDate() + '/' + now.getFullYear();
 }
 
-function getAllLabelsStrArray() {
+function updateLabelsEverywhere() {
+    TaskEditor.updateLabels();
+    for(let list of allLists) {
+        for(let task of list.tasks) {
+            task.createOrUpdateTable();
+        }
+    }
+}
+
+
+/*function getAllLabelsStrArray() {
     let arr = [];
     for(let i = 0; i < allLabels.length; i++) {
         arr.push(allLabels[i].toString());
     }
     return arr;
-}
+}*/
 
-function getReverseGreyscale(colour) {
+/*function getReverseGreyscale(colour) {
     return 255 * (1 - (colour[0] + colour[1] + colour[2]) / (255 + 255 + 255));
 }
 
@@ -39,7 +50,7 @@ function getTextShadowOfColour(width, colour) {
                 ", " + width + "em " + width + "em 0 " +  colour
 }
 
-/*// input: r,g,b in [0,1], out: h in [0,360) and s,v in [0,1]
+// input: r,g,b in [0,1], out: h in [0,360) and s,v in [0,1]
 function rgb2hsv(r,g,b) {
     let v=Math.max(r,g,b), c=v-Math.min(r,g,b);
     let h= c && ((v==r) ? (g-b)/c : ((v==g) ? 2+(b-r)/c : 4+(r-g)/c)); 

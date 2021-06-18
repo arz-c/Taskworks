@@ -1,14 +1,15 @@
 class Task {
-    constructor(data) {
+    constructor(data = {}) {
         this.list = null; // this property is always set by its parent List
-        // if undefined, will set to null, else, will set to given value
-        this.title = data.title || null;
-        this.labels = data.labels || null;
-        this.doingStart = data.doingStart || null;
-        this.doingEnd = data.doingEnd || null;
-        this.dotw = data.dotw || null; // days of the week
-        this.due = data.due || null;
-        this.priority = data.priority || null;
+        // if undefined, will set to a default value, else, will set to given value
+        let today = getTodaysNumericDate();
+        this.title = data.title || "New task";
+        this.labelIndices = data.labelIndices || [];
+        this.doingStart = data.doingStart || today;
+        this.doingEnd = data.doingEnd || today;
+        this.dotw = data.dotw || [true, true, true, true, true, true, true]; // days of the week
+        this.due = data.due || today;
+        this.priority = data.priority || 0;
     }
 
     _numericToWrittenDate(numericDate) {
@@ -30,17 +31,14 @@ class Task {
 
     _getInfoStrings() {
         // Doing Date String
-        let doingString = "";
-        if(this.doingStart != null) {
-            doingString = "Do: ";
-            if(this.doingEnd == null || this.doingStart == this.doingEnd) {
-                doingString += this._numericToWrittenDate(this.doingStart);
-            } else {
-                doingString += 
-                    this._numericToWrittenDate(this.doingStart)
-                    + " - " +
-                    this._numericToWrittenDate(this.doingEnd)
-            }
+        let doingString = "Do: ";
+        if(this.doingStart == this.doingEnd) {
+            doingString += this._numericToWrittenDate(this.doingStart);
+        } else {
+            doingString += 
+                this._numericToWrittenDate(this.doingStart)
+                + " - " +
+                this._numericToWrittenDate(this.doingEnd)
         }
 
         // DOTW String
@@ -52,7 +50,7 @@ class Task {
             dotwString = "Weekends";
         else if(this._areArraysEqual(this.dotw, [false, true, true, true, true, true, false]))
             dotwString = "Weekdays";
-        else if(this.dotw != null) {
+        else  {
             for(let i = 0; i < this.dotw.length; i++) {
                 if(this.dotw[i])
                     dotwString += DAY_STRINGS[i] + " ";
@@ -61,26 +59,21 @@ class Task {
         }
 
         // Priority String
-        let priorityString;
-        if(this.priority != null)
-            priorityString = PRIORITY_LEVELS[this.priority];
-        else
-            priorityString = "";
-        
+        let priorityString = PRIORITY_LEVELS[this.priority];
+
         return {
-            title: (this.title != null) ? this.title : "",
-            labels: (this.labels != null && this.labels.length > 0) ? this.labels : "",
+            title: this.title,
+            labelIndices: (this.labelIndices.length) ? this.labelIndices : "",
             doing: doingString,
-            due: (this.due != null) ? "Due: " + this._numericToWrittenDate(this.due) : "",
+            due: "Due: " + this._numericToWrittenDate(this.due),
             dotw: dotwString,
-            priority: (this.priority != null) ? "Priority: " + priorityString.toLowerCase() : ""
+            priority: "Priority: " + priorityString.toLowerCase()
         };
     }
       
     createOrUpdateTable(parent) {
-        if(this.elements == undefined) { // if this is the first time the table is being drawn
+        if(this.elements == undefined) // if this is the first time the table is being drawn
             this.elements = [];
-        };
 
         let info = this._getInfoStrings();
 
@@ -117,22 +110,19 @@ class Task {
             labelTable.innerHTML = "";
         }
 
-        for(let i = 0; i < info.labels.length; i++) {
-            let label = allLabels[info.labels[i]];
+        for(let i = 0; i < info.labelIndices.length; i++) {
+            let label = allLabels[info.labelIndices[i]];
             addTextToParent(labelTable, "td", "label", label.title).style =
                 "border-color: " + Label.arrToCSSColourString(label.colour);/* +
                 "; color: " + Label.arrToCSSColourString(hueInvert(label.colour));*/
         }
 
         // Creating edit task button
-        let editTaskButton = document.createElement("button");
-        editTaskButton.className = "editTaskButton";
-        editTaskButton.onclick = function() {
+        let editTaskButton = Form.createButtonElement("Edit", function() {
             TaskEditor.openWindow(this.task);
-        }
+        }, "editTaskButton");
         // Storing "this" list because the "this" keyword in the onclick handler refers to the button HTML element instead of this list
         editTaskButton.task = this;
-        editTaskButton.innerHTML = "Edit";
 
         // Appending elements to container, and container to row 
         if(headerRowContainer != undefined) {
@@ -178,7 +168,7 @@ class Task {
 
     updateInfo(data) {
         this.title = data.title;
-        this.labels = data.labels;
+        this.labelIndices = data.labelIndices;
         this.doingStart = data.doingStart;
         this.doingEnd = data.doingEnd;
         this.dotw = data.dotw;

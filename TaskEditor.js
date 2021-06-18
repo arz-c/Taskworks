@@ -1,5 +1,5 @@
 class TaskEditor {
-    static _addLabelInputElements(form, type, content, name, formattedName, defaultIndex = []) {
+    static _addLabelInputElements(form, type, name, formattedName, defaultIndicies = []) {
         let toAppend = false;
         let div = document.getElementById("labelsDiv");
         if(div == null) {
@@ -7,7 +7,25 @@ class TaskEditor {
             div.id = "labelsDiv";
             toAppend = true;
         }
-        Form.addListInputElements(div, type, content, name, formattedName, defaultIndex);
+        //Form.addListInputElements(div, type, content, name, formattedName, defaultIndex);
+        div.appendChild(Form.createLabelElement(name, formattedName, true));
+        div.appendChild(document.createElement("br"));
+        for(let i = 0; i < allLabels.length; i++) {
+            let l = allLabels[i];
+            div.appendChild(Form.createInputElement(type, name, i, defaultIndicies.includes(i) ? true : null));
+            div.appendChild(Form.createLabelElement(name, l.toString()));
+            div.appendChild(Form.createButtonElement("📜", function() {
+                LabelEditor.openWindow(l);
+            }, "editLabel"));
+        }
+        div.appendChild(Form.createButtonElement("➕", function() {
+            let label = new Label();
+            allLabels.push(label);
+            TaskEditor.updateLabels();
+            LabelEditor.openWindow(label);
+        }, "editLabel"));
+        div.appendChild(document.createElement("br"));
+        div.appendChild(document.createElement("br"));
         if(toAppend)
             form.appendChild(div);
     }
@@ -25,17 +43,17 @@ class TaskEditor {
         form.appendChild(header);
         
         // Title
-        Form.addTextInputElements(form, "title", "Title");
+        Form.addTextInputElement(form, "title", "Title");
     
         // Labels (checkboxes)
-        TaskEditor._addLabelInputElements(form, "checkbox", getAllLabelsStrArray(), "labels", "Labels");
+        TaskEditor._addLabelInputElements(form, "checkbox", "labels", "Labels");
 
         // Doing Dates
-        Form.addTextInputElements(form, "doingStart", "Start Doing Date");
-        Form.addTextInputElements(form, "doingEnd", "End Doing Date");
+        Form.addTextInputElement(form, "doingStart", "Start Doing Date");
+        Form.addTextInputElement(form, "doingEnd", "End Doing Date");
 
         // Due Date
-        Form.addTextInputElements(form, "due", "Due Date");
+        Form.addTextInputElement(form, "due", "Due Date");
     
         // DOTW (checkboxes)
         Form.addListInputElements(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
@@ -44,9 +62,9 @@ class TaskEditor {
         Form.addListInputElements(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
     
         // Buttons
-        form.appendChild(Form.createSubmitButtonElement("Save", TaskEditor.save));
-        form.appendChild(Form.createSubmitButtonElement("Cancel", TaskEditor.closeWindow, "cancel"));
-        form.appendChild(Form.createSubmitButtonElement("Delete", TaskEditor.deleteTask));
+        form.appendChild(Form.createButtonElement("Save", TaskEditor.save, "submit"));
+        form.appendChild(Form.createButtonElement("Cancel", TaskEditor.closeWindow, "submit cancel"));
+        form.appendChild(Form.createButtonElement("Delete", TaskEditor.deleteTask, "submit"));
 
         // Heirarchy
         div.appendChild(form);
@@ -54,68 +72,57 @@ class TaskEditor {
     }
 
     static updateLabels() {
-        document.getElementById("labelsDiv").innerHTML = ""; // clear all children;
-        TaskEditor._addLabelInputElements(TaskEditor.form, "checkbox", getAllLabelsStrArray(), "labels", "Labels"); // add current labels
+        let labevlsDiv = document.getElementById("labelsDiv");
+        labevlsDiv.innerHTML = ""; // clear all children;
+        TaskEditor._addLabelInputElements(TaskEditor.form, "checkbox", "labels", "Labels"); // add current labels
+        if(TaskEditor.editingTask != undefined) { // if the task editor window is currently open
+             // then update checkmarks
+            for(let l of labelsDiv.children) {
+                if(l.tagName == "INPUT") {
+                    l.checked = TaskEditor.editingTask.labelIndices.indexOf(parseInt(l.value)) != -1;
+                }
+            }
+        }
     }
 
     static openWindow(task) {
+        Form.shiftToLeftmostPos(TaskEditor);
         TaskEditor.div.style.display = "block";
         TaskEditor.editingTask = task;
+        
         let dotwI = 0;
         let prioI = 0;
         for(let c of TaskEditor.form.children) {
             if(c.tagName == "INPUT") {
                 switch(c.name) {
                     case "title":
-                        if(task.title != null)
-                            c.value = task.title;
-                        else
-                            c.value = "New task"
+                        c.value = task.title;
                         break;
                     case "doingStart":
-                        if(task.doingStart != null)
-                            c.value = task.doingStart;
-                        else
-                            c.value = getTodaysNumericDate();
+                        c.value = task.doingStart;
                         break;
                     case "doingEnd":
-                        if(task.doingEnd != null)
-                            c.value = task.doingEnd;
-                        else
-                            c.value = getTodaysNumericDate();
+                        c.value = task.doingEnd;
                         break;
                     case "due":
-                        if(task.due != null)
-                            c.value = task.due;
-                        else
-                            c.value = getTodaysNumericDate();
+                        c.value = task.doingStart;
                         break;
                     case "dotw":
-                        if(task.dotw != null) {
-                            c.checked = task.dotw[dotwI];
-                            dotwI++;
-                        } else
-                            c.checked = true;
+                        c.checked = task.dotw[dotwI];
+                        dotwI++;
                         break;
                     case "priority":
-                        if(task.priority != null) {
-                            if(task.priority == prioI) 
-                                c.checked = true;
-                        } else {
-                            if(prioI == 0)
-                                c.checked = true;
-                        }
+                        if(task.priority == prioI) 
+                            c.checked = true;
                         prioI++;
                         break;
                 }
             } else if(c.id == "labelsDiv") { // label div
-                if(task.labels == null)
-                    continue;
                 for(let l of c.children) { // label
                     if(l.tagName == "INPUT") {
                         let searchVal = parseInt(l.value);
                         let found = false;
-                        for(let infoL of task.labels) {
+                        for(let infoL of task.labelIndices) {
                             if(infoL == searchVal) {
                                 found = true;
                                 break;
@@ -163,17 +170,17 @@ class TaskEditor {
     
                 }
             } else if(c.id == "labelsDiv") { // label div
-                if(!("labels" in formData)) // adding key to dict
-                    formData["labels"] = [];
+                if(!("labelIndices" in formData)) // adding key to dict
+                    formData["labelIndices"] = [];
                 
-                let mainTask = TaskEditor.editingTask.labels[0];
-                formData["labels"].push(mainTask);
+                /*let mainTask = TaskEditor.editingTask.labelIndices[0];
+                formData["labelIndices"].push(mainTask);*/
                 
                 for(let l of c.children) { // label
                     if(l.tagName == "INPUT" && l.checked) {
-                        if(l.value == mainTask)
-                            continue;
-                        formData["labels"].push(parseInt(l.value));
+                        /*if(l.value == mainTask)
+                            continue;*/
+                        formData["labelIndices"].push(parseInt(l.value));
                     }
                 }
             }

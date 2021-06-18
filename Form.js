@@ -1,4 +1,8 @@
 class Form {
+    static init() {
+        Form.container = document.getElementById("uiContainer");
+    }
+
     static createFormUsingExistingID(id) {
         let container = document.getElementById("uiContainer");
         let div = document.createElement("div");
@@ -22,7 +26,8 @@ class Form {
         var inp = document.createElement("input");
         inp.setAttribute("type", type);
         inp.setAttribute("name", name);
-        inp.setAttribute("value", value);
+        if(value != null)
+            inp.setAttribute("value", value);
         if(extra != null) {
             switch(type) {
                 case "text":
@@ -38,18 +43,18 @@ class Form {
         return inp;
     }
     
-    static createSubmitButtonElement(innerHTML, onClick, className = null) {
-        let submitBtn = document.createElement("button");
+    static createButtonElement(innerHTML, onClick, className = null) {
+        let btn = document.createElement("button");
         if(className)
-            submitBtn.className = className;
-        submitBtn.innerHTML = innerHTML;
-        submitBtn.addEventListener("click", onClick);
-        return submitBtn;
+            btn.className = className;
+        btn.innerHTML = innerHTML;
+        btn.addEventListener("click", onClick);
+        return btn;
     }
     
-    static addTextInputElements(form, name, formattedName) {
+    static addTextInputElement(form, name, formattedName) {
         form.appendChild(Form.createLabelElement(name, formattedName, true))
-        form.appendChild(Form.createInputElement("text", name, "", "Enter " + formattedName));
+        form.appendChild(Form.createInputElement("text", name, null, "Enter " + formattedName));
     }
     
     static addListInputElements(form, type, content, name, formattedName, defaultIndicies = []) {
@@ -62,5 +67,18 @@ class Form {
         }
         form.appendChild(document.createElement("br"));
         form.appendChild(document.createElement("br"));
+    }
+
+    static addColourInputElement(form, name, formattedName) {
+        form.appendChild(Form.createLabelElement(name, formattedName, true))
+        form.appendChild(document.createElement("br"));
+        form.appendChild(Form.createInputElement("color", name, null));
+        form.appendChild(document.createElement("br"));
+        form.appendChild(document.createElement("br"));
+    }
+
+    static shiftToLeftmostPos(c) {
+        c.div.remove();
+        Form.container.insertBefore(c.div, Form.container.firstChild);
     }
 }

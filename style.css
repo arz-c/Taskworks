@@ -1,9 +1,10 @@
 :root {
-  --major-background-colour: rgb(128, 35, 35);
-  --major-text-colour: goldenrod;
-  --minor-background-colour: rgb(255, 200, 200);
-  --minor-text-colour: maroon;
-  --contrast-background-colour: rgb(230, 230, 230);
+  --major-primary-colour: goldenrod;
+  --major-secondary-colour: rgb(128, 35, 35);
+  --minor-primary-colour: maroon;
+  --minor-secondary-colour: rgb(255, 200, 200);
+  /*--contrast-primary-colour: rgb(150, 150, 150);*/
+  --contrast-secondary-colour: rgb(230, 230, 230);
   --heading-text-size: 1.5em;
   --task-width: 17em;
 }
@@ -29,8 +30,8 @@ button:focus {
 }
 
 #newListButton {
-  color: var(--major-background-colour);
-  background-color: var(--major-text-colour);
+  color: var(--major-secondary-colour);
+  background-color: var(--major-primary-colour);
   font-weight: bold;
   font-size: var(--heading-text-size);
   margin: 0.5em;
@@ -47,17 +48,19 @@ button:focus {
 }
 
 table.list {
-  background-color: var(--major-text-colour);
+  background-color: var(--minor-secondary-colour);
   float: left;
   margin: 0.5em;
   border: 0.4em solid black;
   border-spacing: 0.4em;
 }
 
-table.list th {
-  color: var(--minor-text-colour);
-  background-color: var(--minor-background-colour);
+table.list > thead > button.title {
+  color: var(--minor-primary-colour);
+  /*background-color: var(--minor-secondary-colour);*/
+  background-color: transparent;
   font-size: var(--heading-text-size);
+  width: 100%;
 }
 
 table.list tr.newTaskRow td {
@@ -67,14 +70,14 @@ table.list tr.newTaskRow td {
 }
 
 table.list tr.newTaskRow button {
-  color: var(--major-text-colour);
-  background-color: var(--major-background-colour);
+  color: var(--major-primary-colour);
+  background-color: var(--major-secondary-colour);
   margin: 0.5em;
   padding: 1em 2em;
 }
 
 table.task {
-  background-color: var(--contrast-background-colour);
+  background-color: var(--contrast-secondary-colour);
   table-layout: auto;
   width: var(--task-width);
   border: 0.3em solid black;
@@ -101,8 +104,8 @@ table.task table.labelTable {
 }
 
 table.task td.label {
-  color: var(--minor-text-colour);
-  background-color: var(--minor-background-colour);
+  color: var(--minor-primary-colour);
+  background-color: var(--minor-secondary-colour);
   border: 0.4em solid;
   font-size: 0.9em;
   vertical-align: middle;
@@ -115,7 +118,7 @@ table.task td.label {
 }
 
 table.task td.title {
-  color: var(--minor-text-colour);
+  color: var(--minor-primary-colour);
   font-size: 1.2em;
 }
 
@@ -144,29 +147,29 @@ table.task td.config {
 }
 
 .formContainer {
-  max-width: 20em;
+  max-width: 23em;
   padding: 0.5em;
-  background-color: var(--minor-background-colour);
+  background-color: var(--minor-secondary-colour);
 }
 
 .formContainer input[type=text] {
-  width: 90%;
+  width: 92%;
   padding: 1em;
   margin: 0.3em 0 1.2em 0;
   border: none;
-  background: var(--contrast-background-colour);
+  background: var(--contrast-secondary-colour);
   /*font-size: 0.9em;*/
 }
 
 .formContainer h1 {
-  color: var(--major-text-colour);
-  background-color: var(--major-background-colour);
+  color: var(--major-primary-colour);
+  background-color: var(--major-secondary-colour);
   text-align: center;
   padding: 0.3em;
 }
 
 .formContainer .header {
-  color: var(--minor-text-colour);
+  color: var(--minor-primary-colour);
   font-weight: bold;
   font-size: 1.1em;
 }
@@ -176,8 +179,12 @@ table.task td.config {
   outline: none;
 }
 
-.formContainer button {
-  background-color: var(--major-background-colour);
+.formContainer button.editLabel {
+  background-color: transparent;
+}
+
+.formContainer button.submit {
+  background-color: var(--major-secondary-colour);
   color: white;
   padding: 1em 1.2em;
   border: none;
@@ -186,6 +193,6 @@ table.task td.config {
   margin-bottom: 0.7em;
 }
 
-.formContainer .cancel {
-  background-color: var(--major-text-colour);
+.formContainer button.cancel {
+  background-color: var(--major-primary-colour);
 }

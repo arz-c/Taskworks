@@ -1,56 +1,66 @@
 class List {
-    constructor(title, label) {
-        this.title = title || "";
+    constructor(title/*, labelIndex*/) {
+        this.title = title || "New list";
+        /*if(labelIndex != undefined) {
+            this.labelIndex = labelIndex;
+        } else {
+            allLabels.push(new Label(this.title, [150, 150, 150]))
+            this.labelIndex = allLabels.length - 1;
+            TaskEditor.updateLabels();
+        }*/
+
         this.tasks = [];
-        this.label = label;
+
+        // TABLE
+        this.elements = [];
 
         // Creating the list table
-        this.table = document.createElement("table");
-        this.table.className = "list";
-        this.table.style = "background-color: " + Label.arrToCSSColourString(allLabels[this.label].colour);
+        let table = document.createElement("table");
+        table.className = "list";
+        //table.style = "background-color: " + Label.arrToCSSColourString(allLabels[this.labelIndex].colour);
+        this.elements.table = table
         
-        // Creating the title text
-        let thead = this.table.createTHead();
-        addTextToParent(thead, "th", null, this.title);
-        
-        // makes title's colour = label's colour, and contrasts the background with it
-        /*titleTH.style =
-            "background-color: " + Label.arrToCSSColourString(hueInvert(this.label.colour)) +
-            "; color: " + Label.arrToCSSColourString(this.label.colour);*/
+        // Creating the title text (in the form of a button)
+        let thead = table.createTHead();
+        let titleButton = Form.createButtonElement(this.title, function() {
+            ListEditor.openWindow(this.list)
+        }, "title");
+        // Storing "this" list because the "this" keyword in the onclick handler refers to the button HTML element instead of this list
+        titleButton.list = this;
+        thead.appendChild(titleButton);
+        this.elements.titleButton = titleButton;
         
         // Moving new list button
         let newListButton = document.getElementById("newListButton")
-        document.body.insertBefore(this.table, newListButton);
+        document.body.insertBefore(table, newListButton);
 
         // Creating the "Create new task" button
-        let newTaskButton = document.createElement("button");
-        newTaskButton.innerHTML = "Create new task";
-        newTaskButton.onclick = this.newTaskButtonOnclick;
+        let newTaskButton = Form.createButtonElement("Create new task", this.newTaskButtonOnclick);
         // Storing "this" list because the "this" keyword in the onclick handler refers to the button HTML element instead of this list
         newTaskButton.list = this;
-        let buttonRow = this.table.insertRow();
+        let buttonRow = table.insertRow();
         buttonRow.className = "newTaskRow"
         let td = document.createElement("td");
         td.appendChild(newTaskButton)
         buttonRow.appendChild(td)
-        this.table.appendChild(buttonRow);
+        table.appendChild(buttonRow);
     }
 
     addTask(task) {
         task.list = this;
-        this.tasks.push(task);
-        if(task.labels != null) {
-            let mainLabelI = task.labels.indexOf(this.label);
-            switch(mainLabelI == -1) {
-                case false:
-                    task.labels.splice(mainLabelI, 1) // remove it
-                case true:
-                    task.labels.unshift(this.label) // add to start
-                    break;
-            }
-        }
+        this.tasks.push(task)
+        
+        /*let mainLabelI = task.labelIndices.indexOf(this.labelIndex);
+        switch(mainLabelI == -1) {
+            case false:
+                task.labelIndices.splice(mainLabelI, 1); // remove it first
+            case true:
+                task.labelIndices.unshift(this.labelIndex) // add to start   
+                break; 
+        }*/
+
         task.createOrUpdateTable(
-            this.table.insertRow(
+            this.elements.table.insertRow(
                 this.tasks.length - 1
             )
         );
@@ -61,8 +71,21 @@ class List {
     }
 
     newTaskButtonOnclick() {
-        let newTask = new Task({labels: [this.list.label]});
+        let newTask = new Task(/*{labelIndices: [this.list.labelIndex]}*/);
         TaskEditor.openWindow(newTask)
         this.list.addTask(newTask);
     }
+
+    updateInfo(data) {
+        this.title = data.title;
+        //allLabels[this.labelIndex].title = data.title; // update label title
+        //allLabels[this.labelIndex].colour = data.colour; // update label colour
+    }
+
+    updateTable() {
+        this.elements.titleButton.innerHTML = this.title; // update title
+        //this.elements.table.style = "background-color: " + Label.arrToCSSColourString(allLabels[this.labelIndex].colour); // update background colour
+        updateLabelsEverywhere();
+    }
+
 }

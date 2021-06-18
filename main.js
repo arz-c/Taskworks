@@ -1,30 +1,26 @@
-let lists = [];
-
-TaskEditor.init();
+Form.init();
+ListEditor.init();
 LabelEditor.init();
+TaskEditor.init();
 
 allLabels.push(new Label("AP", [150, 255, 150]));
 allLabels.push(new Label("Strings", [250, 250, 150]));
 allLabels.push(new Label("Science", [100, 120, 20]));
 allLabels.push(new Label("Math", [150, 150, 255]));
 TaskEditor.updateLabels();
-/*let x = 0;
-allLabels.push(new Label("Math", [x, x, x]));*/
 
 function newListButtonOnclick() {
-    let title = prompt("Title: ");
-    let label = new Label(
-        title,
-        Label.parseInput(prompt("Colour (R, G, B): "))
-    );
-    allLabels.push(label);
-    TaskEditor.updateLabels();
-    lists.push(new List(title, allLabels.length - 1));
+    let newList = new List();
+    ListEditor.openWindow(newList)
+    allLists.push(newList);
+    
+    /*allLabels.push(label);
+    TaskEditor.updateLabels();*/
 }
 
 let testTask = new Task({
     title: "Record playing performance assessment #5 (London Symphony)",
-    labels: [1, 0],
+    labelIndices: [1, 0],
     doingStart: "06/10/2021",
     doingEnd: "06/10/2021",
     due: "06/10/2021",
@@ -34,7 +30,7 @@ let testTask = new Task({
 
 let testTask2 = new Task({
     title: "Test task 2",
-    labels: [2, 0],
+    labelIndices: [2, 0],
     doingStart: "06/08/2021",
     doingEnd: "07/10/2021",
     due: "06/10/2021",
@@ -44,7 +40,7 @@ let testTask2 = new Task({
 
 let testTask3 = new Task({
     title: "Test task 3",
-    labels: [3, 0],
+    labelIndices: [3, 0],
     doingStart: "06/08/2021",
     doingEnd: "07/10/2021",
     due: "06/10/2021",
@@ -53,8 +49,8 @@ let testTask3 = new Task({
 });
 
 let testTask4 = new Task({
-    title: "Test task 3",
-    labels: [1, 3],
+    title: "Test task 4",
+    labelIndices: [1, 3],
     doingStart: "06/08/2021",
     doingEnd: "07/10/2021",
     due: "06/10/2021",
@@ -62,12 +58,15 @@ let testTask4 = new Task({
     priority: 1
 });
 
-let stringsList = new List("Strings", 1);
+let stringsList = new List("Strings");
 stringsList.addTask(testTask);
 stringsList.addTask(testTask2);
+allLists.push(stringsList);
 
-let scienceList = new List("Science", 2);
+let scienceList = new List("Science");
 scienceList.addTask(testTask3);
+allLists.push(scienceList);
 
-let mathList = new List("Math", 3);
+let mathList = new List("Math");
 mathList.addTask(testTask4);
+allLists.push(mathList);
