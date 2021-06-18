@@ -20,7 +20,7 @@ class ListEditor {
         // Buttons
         form.appendChild(Form.createButtonElement("Save", ListEditor.save, "submit"));
         form.appendChild(Form.createButtonElement("Cancel", ListEditor.closeWindow, "submit cancel"));
-        form.appendChild(Form.createButtonElement("Delete", ListEditor.deleteLabel, "submit"));
+        form.appendChild(Form.createButtonElement("Delete", ListEditor.deleteList, "submit"));
     
         // Heirarchy
         div.appendChild(form);
@@ -77,7 +77,8 @@ class ListEditor {
         ListEditor.div.style.display = "none";
     }
 
-    static deleteLabel() {
-
+    static deleteList() {
+        ListEditor.editingList.delete();
+        ListEditor.closeWindow();
     }
 }

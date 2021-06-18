@@ -88,4 +88,9 @@ class List {
         updateLabelsEverywhere();
     }
 
+    delete() {
+        allLists.splice(allLists.indexOf(this), 1);
+        this.elements.table.remove();
+        delete this;
+    }
 }
