@@ -123,7 +123,7 @@ table.task td.title {
 }
 
 table.task td.dates {
-  font-size: 1em;
+  font-size: 0.95em;
 }
 
 table.task td.config {
@@ -147,18 +147,27 @@ table.task td.config {
 }
 
 .formContainer {
-  max-width: 23em;
+  width: 23em;
   padding: 0.5em;
   background-color: var(--minor-secondary-colour);
 }
 
 .formContainer input[type=text] {
-  width: 92%;
+  width: 93%;
   padding: 1em;
   margin: 0.3em 0 1.2em 0;
   border: none;
   background: var(--contrast-secondary-colour);
   /*font-size: 0.9em;*/
+}
+
+.formContainer input[type=text]:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+.formContainer input[type=date] {
+  width: 100%;
 }
 
 .formContainer h1 {
@@ -174,11 +183,6 @@ table.task td.config {
   font-size: 1.1em;
 }
 
-.formContainer input[type=text]:focus {
-  background-color: #ddd;
-  outline: none;
-}
-
 .formContainer button.editLabel {
   background-color: transparent;
 }
@@ -187,9 +191,9 @@ table.task td.config {
   background-color: var(--major-secondary-colour);
   color: white;
   padding: 1em 1.2em;
+  width: 100%;
   border: none;
   cursor: pointer;
-  width: 100%;
   margin-bottom: 0.7em;
 }
 

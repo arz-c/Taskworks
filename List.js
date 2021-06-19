@@ -22,7 +22,7 @@ class List {
         
         // Creating the title text (in the form of a button)
         let thead = table.createTHead();
-        let titleButton = Form.createButtonElement(this.title, function() {
+        let titleButton = Form.createButton(this.title, function() {
             ListEditor.openWindow(this.list)
         }, "title");
         // Storing "this" list because the "this" keyword in the onclick handler refers to the button HTML element instead of this list
@@ -35,7 +35,7 @@ class List {
         document.body.insertBefore(table, newListButton);
 
         // Creating the "Create new task" button
-        let newTaskButton = Form.createButtonElement("Create new task", this.newTaskButtonOnclick);
+        let newTaskButton = Form.createButton("Create new task", this.newTaskButtonOnclick);
         // Storing "this" list because the "this" keyword in the onclick handler refers to the button HTML element instead of this list
         newTaskButton.list = this;
         let buttonRow = table.insertRow();

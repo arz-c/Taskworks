@@ -1,4 +1,3 @@
-- Clean up code (maybe move addTextToParent under Form?)
 - Make tasks and lists moveable (reorderable)
 - Make due text change colour when date is approaching
 
@@ -10,3 +9,7 @@
 - Fix task editor CSS
 - Make UI for label editing
 - Make tasks and lists editable
+- Clean up code (maybe move addTextToParent under Form?)
+
+==== Future Improvements ====
+- When task editor is open, save the labels that are checked so that if a new label is created and the label inputs are erased and updated, the ones that were checked remain checked

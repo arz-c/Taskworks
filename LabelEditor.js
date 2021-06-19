@@ -1,7 +1,7 @@
 class LabelEditor {
     static init() {
         // Creating form
-        let [container, div, form] = Form.createFormUsingExistingID("labelEditorForm");
+        let [div, form] = Form.createFormUsingExistingID("labelEditorForm");
 
         LabelEditor.div = div;
         LabelEditor.form = form;
@@ -12,19 +12,19 @@ class LabelEditor {
         form.appendChild(header);
         
         // Title
-        Form.addTextInputElement(form, "title", "Title");
+        Form.addTextInputTo(form, "title", "Title");
 
         // Colour Editor
-        Form.addColourInputElement(form, "colour", "Colour");
+        Form.addColourInputTo(form, "colour", "Colour");
         
         // Buttons
-        form.appendChild(Form.createButtonElement("Save", LabelEditor.save, "submit"));
-        form.appendChild(Form.createButtonElement("Cancel", LabelEditor.closeWindow, "submit cancel"));
-        form.appendChild(Form.createButtonElement("Delete", LabelEditor.deleteLabel, "submit"));
+        form.appendChild(Form.createButton("Save", LabelEditor.save, "submit"));
+        form.appendChild(Form.createButton("Cancel", LabelEditor.closeWindow, "submit cancel"));
+        form.appendChild(Form.createButton("Delete", LabelEditor.deleteLabel, "submit"));
     
         // Heirarchy
         div.appendChild(form);
-        container.appendChild(div);
+        Form.container.appendChild(div);
     }
 
     static save() {

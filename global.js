@@ -5,19 +5,16 @@ const PRIORITY_LEVELS = ["Low", "Medium", "High"];
 let allLabels = [];
 let allLists = [];
 
-function addTextToParent(parent, elementType, className, text,) {
-    let element = document.createElement(elementType);
-    let textNode = document.createTextNode(text);
-    element.appendChild(textNode);
-    if(className != null)
-        element.className = className;
-    parent.append(element);
-    return element;
+function dateObjToNumericDate(date) {
+    return(
+        date.getFullYear() + '-' +
+        (parseInt(date.getMonth()) + 1).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + '-' +
+        date.getDate().toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false})
+    );
 }
 
 function getTodaysNumericDate() {
-    let now = new Date();
-    return parseInt(now.getMonth()) + 1 + '/' + now.getDate() + '/' + now.getFullYear();
+    return dateObjToNumericDate(new Date());
 }
 
 function updateLabelsEverywhere() {

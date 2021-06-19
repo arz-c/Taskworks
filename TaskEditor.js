@@ -1,38 +1,7 @@
 class TaskEditor {
-    static _addLabelInputElements(form, type, name, formattedName, defaultIndicies = []) {
-        let toAppend = false;
-        let div = document.getElementById("labelsDiv");
-        if(div == null) {
-            div = document.createElement("div");
-            div.id = "labelsDiv";
-            toAppend = true;
-        }
-        //Form.addListInputElements(div, type, content, name, formattedName, defaultIndex);
-        div.appendChild(Form.createLabelElement(name, formattedName, true));
-        div.appendChild(document.createElement("br"));
-        for(let i = 0; i < allLabels.length; i++) {
-            let l = allLabels[i];
-            div.appendChild(Form.createInputElement(type, name, i, defaultIndicies.includes(i) ? true : null));
-            div.appendChild(Form.createLabelElement(name, l.toString()));
-            div.appendChild(Form.createButtonElement("📜", function() {
-                LabelEditor.openWindow(l);
-            }, "editLabel"));
-        }
-        div.appendChild(Form.createButtonElement("➕", function() {
-            let label = new Label();
-            allLabels.push(label);
-            TaskEditor.updateLabels();
-            LabelEditor.openWindow(label);
-        }, "editLabel"));
-        div.appendChild(document.createElement("br"));
-        div.appendChild(document.createElement("br"));
-        if(toAppend)
-            form.appendChild(div);
-    }
-
     static init() {
         // Creating form
-        let [container, div, form] = Form.createFormUsingExistingID("taskEditorForm");
+        let [div, form] = Form.createFormUsingExistingID("taskEditorForm");
         
         TaskEditor.div = div;
         TaskEditor.form = form;
@@ -43,38 +12,70 @@ class TaskEditor {
         form.appendChild(header);
         
         // Title
-        Form.addTextInputElement(form, "title", "Title");
+        Form.addTextInputTo(form, "title", "Title");
     
         // Labels (checkboxes)
-        TaskEditor._addLabelInputElements(form, "checkbox", "labels", "Labels");
+        TaskEditor._addLabelInputTo(form, "checkbox", "labels", "Labels");
 
         // Doing Dates
-        Form.addTextInputElement(form, "doingStart", "Start Doing Date");
-        Form.addTextInputElement(form, "doingEnd", "End Doing Date");
+        Form.addDateInputTo(form, "doingStart", "Start Doing Date");
+        Form.addDateInputTo(form, "doingEnd", "End Doing Date");
 
         // Due Date
-        Form.addTextInputElement(form, "due", "Due Date");
+        Form.addDateInputTo(form, "due", "Due Date");
     
         // DOTW (checkboxes)
-        Form.addListInputElements(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
+        Form.addListInputTo(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
     
         // Priority (radio button)
-        Form.addListInputElements(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
+        Form.addListInputTo(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
     
         // Buttons
-        form.appendChild(Form.createButtonElement("Save", TaskEditor.save, "submit"));
-        form.appendChild(Form.createButtonElement("Cancel", TaskEditor.closeWindow, "submit cancel"));
-        form.appendChild(Form.createButtonElement("Delete", TaskEditor.deleteTask, "submit"));
+        form.appendChild(Form.createButton("Save", TaskEditor.save, "submit"));
+        form.appendChild(Form.createButton("Cancel", TaskEditor.closeWindow, "submit cancel"));
+        form.appendChild(Form.createButton("Delete", TaskEditor.deleteTask, "submit"));
 
         // Heirarchy
         div.appendChild(form);
-        container.appendChild(div);
+        Form.container.appendChild(div);
     }
+
+    // this label (tags at the top of tasks) is not to be confused with the HTML form element label
+    static _addLabelInputTo(form, type, name, formattedName, defaultIndicies = []) {
+        let toAppend = false;
+        let div = document.getElementById("labelsDiv");
+        if(div == null) {
+            div = document.createElement("div");
+            div.id = "labelsDiv";
+            toAppend = true;
+        }
+        div.appendChild(Form.createLabel(name, formattedName, true));
+        Form.addBrTo(div);
+        for(let i = 0; i < allLabels.length; i++) {
+            let l = allLabels[i];
+            div.appendChild(Form.createInputElement(type, name, i, defaultIndicies.includes(i) ? true : null));
+            div.appendChild(Form.createLabel(name, l.toString()));
+            div.appendChild(Form.createButton("📜", function() {
+                LabelEditor.openWindow(l);
+            }, "editLabel"));
+        }
+        div.appendChild(Form.createButton("➕", function() {
+            let label = new Label();
+            allLabels.push(label);
+            TaskEditor.updateLabels();
+            LabelEditor.openWindow(label);
+        }, "editLabel"));
+        Form.addBrTo(div);
+        Form.addBrTo(div);
+        if(toAppend)
+            form.appendChild(div);
+    }
+
 
     static updateLabels() {
         let labevlsDiv = document.getElementById("labelsDiv");
         labevlsDiv.innerHTML = ""; // clear all children;
-        TaskEditor._addLabelInputElements(TaskEditor.form, "checkbox", "labels", "Labels"); // add current labels
+        TaskEditor._addLabelInputTo(TaskEditor.form, "checkbox", "labels", "Labels"); // add current labels
         if(TaskEditor.editingTask != undefined) { // if the task editor window is currently open
              // then update checkmarks
             for(let l of labelsDiv.children) {
@@ -145,7 +146,8 @@ class TaskEditor {
             if(c.tagName == "INPUT") {
                 if(!(c.name in formData)) { // adding key to dict
                     switch(c.type) {
-                        case "text": // all text
+                        case "text": // title
+                        case "date": // all dates
                             formData[c.name] = "";
                             break;
                         case "checkbox": // dotw (not label)
@@ -157,7 +159,10 @@ class TaskEditor {
                     }
                 }
                 switch(c.type) {
-                    case "text": // all text
+                    case "text": // title
+                        formData[c.name] = c.value;
+                        break;
+                    case "date": // all dates
                         formData[c.name] = c.value;
                         break;
                     case "checkbox": // dotw (not label)
