@@ -5,6 +5,15 @@ const PRIORITY_LEVELS = ["Low", "Medium", "High"];
 let allLabels = [];
 let allLists = [];
 
+function updateLabelsEverywhere() {
+    TaskEditor.updateLabels();
+    for(let list of allLists) {
+        for(let task of list.tasks) {
+            task.createOrUpdateTable();
+        }
+    }
+}
+
 function dateObjToNumericDate(date) {
     return(
         date.getFullYear() + '-' +
@@ -17,14 +26,15 @@ function getTodaysNumericDate() {
     return dateObjToNumericDate(new Date());
 }
 
-function updateLabelsEverywhere() {
-    TaskEditor.updateLabels();
-    for(let list of allLists) {
-        for(let task of list.tasks) {
-            task.createOrUpdateTable();
-        }
-    }
+function numericDateToInt(date) {
+    date = date.split('-');
+    return(
+        365 * parseInt(date[2]) +
+        30.5 * parseInt(date[0]) +
+        parseInt(date[1])
+    );
 }
+
 
 
 /*function getAllLabelsStrArray() {

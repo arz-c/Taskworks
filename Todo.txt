@@ -1,4 +1,7 @@
-- Make tasks and lists moveable (reorderable)
+- Order lists automatically by 1. priority 2. due date
+- Add checkmark to task for when a task is finished
+- Make tasks reset their checkmark every day
+- Add an "Active" option to task editor for when the user doesn't want tasks to repeat everyday (based on DOTW settings)
 - Make due text change colour when date is approaching
 
 ==== Done ====
@@ -10,6 +13,10 @@
 - Make UI for label editing
 - Make tasks and lists editable
 - Clean up code (maybe move addTextToParent under Form?)
+- Remove list label commented code
 
 ==== Future Improvements ====
 - When task editor is open, save the labels that are checked so that if a new label is created and the label inputs are erased and updated, the ones that were checked remain checked
+
+xxxx Scrapped Ideas xxxx
+- Make tasks and lists moveable (reorderable)

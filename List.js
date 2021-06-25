@@ -1,14 +1,6 @@
 class List {
-    constructor(title/*, labelIndex*/) {
+    constructor(title) {
         this.title = title || "New list";
-        /*if(labelIndex != undefined) {
-            this.labelIndex = labelIndex;
-        } else {
-            allLabels.push(new Label(this.title, [150, 150, 150]))
-            this.labelIndex = allLabels.length - 1;
-            TaskEditor.updateLabels();
-        }*/
-
         this.tasks = [];
 
         // TABLE
@@ -17,7 +9,6 @@ class List {
         // Creating the list table
         let table = document.createElement("table");
         table.className = "list";
-        //table.style = "background-color: " + Label.arrToCSSColourString(allLabels[this.labelIndex].colour);
         this.elements.table = table
         
         // Creating the title text (in the form of a button)
@@ -46,23 +37,59 @@ class List {
         table.appendChild(buttonRow);
     }
 
+    _reorderTaskArray(task, exists = false) {
+        let t;
+        if(exists) // task does already exist in list
+            t = this.tasks.splice(this.tasks.indexOf(task), 1)[0]; // remove task from array and save it to t
+        else // task doesn't already exist in list
+            t = task;
+
+        let comparingDates = false;
+        let newIndex = -1;
+        let len = this.tasks.length; // need this so for loop doesn't dynamically check for new lengths
+        for(let i = 0 ; i < len; i++) {
+            let curTask = this.tasks[i];
+            // tasks array goes from highest to lowest priortity
+            if(comparingDates && (numericDateToInt(t.due) < numericDateToInt(curTask.due) || t.priority > curTask.priority)) { // insert either in between same priority tasks or at the bottom of the priority group
+                this.tasks.splice(i, 0, t); // insert elemenet in position
+                newIndex = i;
+                break;
+            } else if(t.priority > curTask.priority) {
+                this.tasks.splice(i, 0, t); // insert elemenet in position
+                newIndex = i;
+                break;
+            } else if(t.priority == curTask.priority) { // if in the same priority group (=)/just made it past same priority group (>)
+                if(numericDateToInt(t.due) < numericDateToInt(curTask.due)) { // if new task is due before cur task
+                    this.tasks.splice(i, 0, t); // insert elemenet in position
+                    newIndex = i;
+                    break;
+                } else {
+                    comparingDates = true; // now that new tasks' priority must match or be less than cur task, set this to true
+                }
+            }
+        }
+
+        if(newIndex == -1) { // if no spot was found
+            this.tasks.push(task) // add it to the end
+            newIndex = this.tasks.length - 1;
+        }
+
+        return newIndex;
+    }
+
+    updateTaskPosition(task) {
+        let newIndex = this._reorderTaskArray(task, true);
+        // moving task table to new index
+        let table = task.elements.table; // save the table
+        task.elements.table.remove(); // remove the table
+        this.elements.table.insertRow(newIndex).appendChild(table); // add the table to a row created at the given index
+    }
+
     addTask(task) {
         task.list = this;
-        this.tasks.push(task)
-        
-        /*let mainLabelI = task.labelIndices.indexOf(this.labelIndex);
-        switch(mainLabelI == -1) {
-            case false:
-                task.labelIndices.splice(mainLabelI, 1); // remove it first
-            case true:
-                task.labelIndices.unshift(this.labelIndex) // add to start   
-                break; 
-        }*/
-
-        task.createOrUpdateTable(
-            this.elements.table.insertRow(
-                this.tasks.length - 1
-            )
+        let newIndex = this._reorderTaskArray(task); // add task to correct position in this.tasks
+        task.createOrUpdateTable( // add the table to a row created at its new index in this.tasks
+            this.elements.table.insertRow(newIndex)
         );
     }
 
@@ -71,20 +98,17 @@ class List {
     }
 
     newTaskButtonOnclick() {
-        let newTask = new Task(/*{labelIndices: [this.list.labelIndex]}*/);
+        let newTask = new Task();
         TaskEditor.openWindow(newTask)
         this.list.addTask(newTask);
     }
 
     updateInfo(data) {
         this.title = data.title;
-        //allLabels[this.labelIndex].title = data.title; // update label title
-        //allLabels[this.labelIndex].colour = data.colour; // update label colour
     }
 
     updateTable() {
         this.elements.titleButton.innerHTML = this.title; // update title
-        //this.elements.table.style = "background-color: " + Label.arrToCSSColourString(allLabels[this.labelIndex].colour); // update background colour
         updateLabelsEverywhere();
     }
 

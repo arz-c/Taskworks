@@ -130,10 +130,15 @@ class Task {
         // Storing "this" list because the "this" keyword in the onclick handler refers to the button HTML element instead of this list
         editTaskButton.task = this;
 
+        // Creating done task checkbox
+        let doneTaskBox = Form.createInputElement("checkbox", "done", false);
+        doneTaskBox.className = "doneTaskBox";
+
         // Appending elements to container, and container to row 
         if(headerRowContainer != undefined) {
             headerRowContainer.append(editTaskButton);
-            headerRowContainer.appendChild(labelTable);
+            headerRowContainer.append(doneTaskBox);
+            headerRowContainer.append(labelTable);
             headerRow.append(headerRowContainer);
         }
 
@@ -168,7 +173,10 @@ class Task {
             this.elements.configRow.children[1].innerHTML = info.priority;
         }
         
-        if(parent != undefined)
+        if(parent == null) // meaning the table is being updated/it already exists
+            //this.list.moveTaskTableToIndex(this, i); // move task table to the given position
+            this.list.updateTaskPosition(this); // call list function that updates its position in the array and the list table
+        else
             parent.appendChild(table);
     }
 

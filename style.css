@@ -91,6 +91,11 @@ table.task button.editTaskButton {
   font-size: 0.7em;
 }
 
+table.task .doneTaskBox {
+  float: right;
+  margin-right: 0.5em;
+}
+
 table.task table.labelTable {
   border-spacing: 0.3em;
   table-layout: fixed;

@@ -13,9 +13,6 @@ function newListButtonOnclick() {
     let newList = new List();
     ListEditor.openWindow(newList)
     allLists.push(newList);
-    
-    /*allLabels.push(label);
-    TaskEditor.updateLabels();*/
 }
 
 let testTask = new Task({
