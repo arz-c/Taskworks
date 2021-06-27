@@ -16,6 +16,11 @@ class Form {
         parent.appendChild(document.createElement("br"));
     }
 
+    static addHrTo(parent) {
+        parent.appendChild(document.createElement("hr"));
+        Form.addBrTo(parent);
+    }
+
     static addTextNodeTo(parent, type, className = null, text) {
         let element = document.createElement(type);
         let textNode = document.createTextNode(text);
@@ -83,22 +88,14 @@ class Form {
         Form.addBrTo(parent);
     }
 
-    static addColourInputTo(parent, name, formattedName) {
+    static addSpacedInputTo(parent, type, name, formattedName) {
         parent.appendChild(Form.createLabel(name, formattedName, true))
         Form.addBrTo(parent);
-        parent.appendChild(Form.createInputElement("color", name, null));
+        parent.appendChild(Form.createInputElement(type, name, null));
         Form.addBrTo(parent);
         Form.addBrTo(parent);
     }
-
-    static addDateInputTo(parent, name, formattedName) {
-        parent.appendChild(Form.createLabel(name, formattedName, true))
-        Form.addBrTo(parent);
-        parent.appendChild(Form.createInputElement("date", name, null));
-        Form.addBrTo(parent);
-        Form.addBrTo(parent);
-    }
-
+    
     static shiftToLeftmostPos(uiStaticClass) {
         uiStaticClass.div.remove();
         Form.container.insertBefore(uiStaticClass.div, Form.container.firstChild);

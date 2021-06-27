@@ -12,12 +12,14 @@ class ListEditor {
         form.appendChild(header);
         
         // Title
-        Form.addTextInputTo(form, "title", "Title");
+        Form.addSpacedInputTo(form, "text", "title", "Title");
         
         // Buttons
+        form.appendChild(Form.createButton("Archive", ListEditor.archiveList, "submit"));
+        form.appendChild(Form.createButton("Delete", ListEditor.deleteList, "submit secondary"));
+        Form.addHrTo(form);
         form.appendChild(Form.createButton("Save", ListEditor.save, "submit"));
-        form.appendChild(Form.createButton("Cancel", ListEditor.closeWindow, "submit cancel"));
-        form.appendChild(Form.createButton("Delete", ListEditor.deleteList, "submit"));
+        form.appendChild(Form.createButton("Cancel", ListEditor.closeWindow, "submit secondary"));
     
         // Heirarchy
         div.appendChild(form);
@@ -56,6 +58,11 @@ class ListEditor {
 
     static closeWindow() {
         ListEditor.div.style.display = "none";
+    }
+
+    static archiveList() {
+        ListEditor.editingList.archive();
+        ListEditor.closeWindow();
     }
 
     static deleteList() {

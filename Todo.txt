@@ -1,12 +1,7 @@
-- Order lists automatically by 1. priority 2. due date
-- Add checkmark to task for when a task is finished
-- Make tasks reset their checkmark every day
-- Add an "Active" option to task editor for when the user doesn't want tasks to repeat everyday (based on DOTW settings)
 - Make due text change colour when date is approaching
 
 ==== Done ====
 - Have colours associated with labels
-    - Change label background colour to associated colour
 - Add "Create task" and "Create list" buttons
 - Reset task editor after hitting save/cancel
 - Fix task editor CSS
@@ -14,9 +9,21 @@
 - Make tasks and lists editable
 - Clean up code (maybe move addTextToParent under Form?)
 - Remove list label commented code
+- Order lists automatically by 1. priority 2. due date
+- Add checkmark to task for when a task is finished
+- Make tasks reset their checkmark every day
+- Use .bind wherever context is needed
+- Add an "Active" option to task editor for when the user doesn't want tasks to repeat everyday (based on DOTW settings)
+- Make task text crossed out when the task is checked (maybe change opacity as well)
+- Make checked task move to the bottom of the list
+- Create "Archive" option for tasks and lists
 
 ==== Future Improvements ====
+- Fix bug where using HTMLElement.remove() leaves behind an empty <tr> that leaves a gap
 - When task editor is open, save the labels that are checked so that if a new label is created and the label inputs are erased and updated, the ones that were checked remain checked
+- Create archive option for labels
 
 xxxx Scrapped Ideas xxxx
+- Change label background colour to associated colour
+- Associate a label with every list
 - Make tasks and lists moveable (reorderable)

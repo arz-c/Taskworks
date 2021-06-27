@@ -12,28 +12,34 @@ class TaskEditor {
         form.appendChild(header);
         
         // Title
-        Form.addTextInputTo(form, "title", "Title");
+        Form.addSpacedInputTo(form, "text", "title", "Title");
     
         // Labels (checkboxes)
         TaskEditor._addLabelInputTo(form, "checkbox", "labels", "Labels");
 
         // Doing Dates
-        Form.addDateInputTo(form, "doingStart", "Start Doing Date");
-        Form.addDateInputTo(form, "doingEnd", "End Doing Date");
+        Form.addSpacedInputTo(form, "date", "doingStart", "Start Doing Date");
+        Form.addSpacedInputTo(form, "date", "doingEnd", "End Doing Date");
 
         // Due Date
-        Form.addDateInputTo(form, "due", "Due Date");
+        Form.addSpacedInputTo(form, "date", "due", "Due Date");
     
         // DOTW (checkboxes)
         Form.addListInputTo(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
     
         // Priority (radio button)
         Form.addListInputTo(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
+
+        // Active
+        Form.addSpacedInputTo(form, "checkbox", "active", "Active");
     
         // Buttons
-        form.appendChild(Form.createButton("Save", TaskEditor.save, "submit"));
-        form.appendChild(Form.createButton("Cancel", TaskEditor.closeWindow, "submit cancel"));
         form.appendChild(Form.createButton("Delete", TaskEditor.deleteTask, "submit"));
+        form.appendChild(Form.createButton("Archive", TaskEditor.archiveTask, "submit secondary"));
+        Form.addHrTo(form);
+        form.appendChild(Form.createButton("Save", TaskEditor.save, "submit"));
+        form.appendChild(Form.createButton("Cancel", TaskEditor.closeWindow, "submit secondary"));
+        
 
         // Heirarchy
         div.appendChild(form);
@@ -95,28 +101,18 @@ class TaskEditor {
         let prioI = 0;
         for(let c of TaskEditor.form.children) {
             if(c.tagName == "INPUT") {
-                switch(c.name) {
-                    case "title":
-                        c.value = task.title;
-                        break;
-                    case "doingStart":
-                        c.value = task.doingStart;
-                        break;
-                    case "doingEnd":
-                        c.value = task.doingEnd;
-                        break;
-                    case "due":
-                        c.value = task.doingStart;
-                        break;
-                    case "dotw":
-                        c.checked = task.dotw[dotwI];
-                        dotwI++;
-                        break;
-                    case "priority":
-                        if(task.priority == prioI) 
+                if(c.name == "priority") {
+                    if(task.priority == prioI) 
                             c.checked = true;
                         prioI++;
-                        break;
+                } else if(c.name == "dotw") {
+                    c.checked = task.dotw[dotwI];
+                    dotwI++;
+                } else {
+                    if(c.type == "checkbox")
+                        c.checked = task[c.name];
+                    else
+                        c.value = task[c.name];
                 }
             } else if(c.id == "labelsDiv") { // label div
                 for(let l of c.children) { // label
@@ -150,8 +146,11 @@ class TaskEditor {
                         case "date": // all dates
                             formData[c.name] = "";
                             break;
-                        case "checkbox": // dotw (not label)
-                            formData[c.name] = [];
+                        case "checkbox": // active & dotw
+                            if(c.name == "active")
+                                formData["active"] = false;    
+                            else if(c.name == "dotw")
+                                formData["dotw"] = [];
                             break;
                         case "radio": // priority
                             formData[c.name] = -1;
@@ -166,7 +165,10 @@ class TaskEditor {
                         formData[c.name] = c.value;
                         break;
                     case "checkbox": // dotw (not label)
-                        formData["dotw"].push(c.checked);
+                        if(c.name == "active")
+                            formData["active"] = c.checked;
+                        else if(c.name == "dotw")
+                            formData["dotw"].push(c.checked);
                         break;
                     case "radio": // priority
                         if(c.checked)
@@ -192,6 +194,11 @@ class TaskEditor {
         }
         TaskEditor.editingTask.updateInfo(formData);
         TaskEditor.editingTask.createOrUpdateTable();
+        TaskEditor.closeWindow();
+    }
+
+    static archiveTask() {
+        TaskEditor.editingTask.archive();
         TaskEditor.closeWindow();
     }
 

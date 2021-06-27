@@ -12,14 +12,14 @@ class LabelEditor {
         form.appendChild(header);
         
         // Title
-        Form.addTextInputTo(form, "title", "Title");
+        Form.addSpacedInputTo(form, "text", "title", "Title");
 
         // Colour Editor
-        Form.addColourInputTo(form, "colour", "Colour");
+        Form.addSpacedInputTo(form, "color", "colour", "Colour");
         
         // Buttons
         form.appendChild(Form.createButton("Save", LabelEditor.save, "submit"));
-        form.appendChild(Form.createButton("Cancel", LabelEditor.closeWindow, "submit cancel"));
+        form.appendChild(Form.createButton("Cancel", LabelEditor.closeWindow, "submit secondary"));
         form.appendChild(Form.createButton("Delete", LabelEditor.deleteLabel, "submit"));
     
         // Heirarchy

@@ -5,6 +5,9 @@ const PRIORITY_LEVELS = ["Low", "Medium", "High"];
 let allLabels = [];
 let allLists = [];
 
+let archivedTasks = [];
+let archivedLists = [];
+
 function updateLabelsEverywhere() {
     TaskEditor.updateLabels();
     for(let list of allLists) {

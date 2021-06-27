@@ -17,7 +17,7 @@ function newListButtonOnclick() {
 
 let testTask = new Task({
     title: "Record playing performance assessment #5 (London Symphony)",
-    labelIndices: [1, 0],
+    labelIndices: [0, 1],
     doingStart: "2021-06-10",
     doingEnd: "2021-06-10",
     due: "2021-06-10",
@@ -27,7 +27,7 @@ let testTask = new Task({
 
 let testTask2 = new Task({
     title: "Test task 2",
-    labelIndices: [2, 0],
+    labelIndices: [0, 2],
     doingStart: "2021-06-08",
     doingEnd: "2021-07-10",
     due: "2021-07-10",
@@ -37,7 +37,7 @@ let testTask2 = new Task({
 
 let testTask3 = new Task({
     title: "Test task 3",
-    labelIndices: [3, 0],
+    labelIndices: [0, 3],
     doingStart: "2022-06-08",
     doingEnd: "2023-07-10",
     due: "2024-07-10",

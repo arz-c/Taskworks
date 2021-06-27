@@ -1,9 +1,10 @@
 :root {
+  /* Variables */
   --major-primary-colour: goldenrod;
   --major-secondary-colour: rgb(128, 35, 35);
   --minor-primary-colour: maroon;
   --minor-secondary-colour: rgb(255, 200, 200);
-  /*--contrast-primary-colour: rgb(150, 150, 150);*/
+  --contrast-primary-colour: rgb(150, 150, 150);
   --contrast-secondary-colour: rgb(230, 230, 230);
   --heading-text-size: 1.5em;
   --task-width: 17em;
@@ -27,6 +28,26 @@ button {
 button:hover,
 button:focus {
   background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--contrast-secondary-colour);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--major-secondary-colour);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+}
+
+hr {
+  background-color: black;
+  border-width: 0;
+  height: 0.3em;
 }
 
 #newListButton {
@@ -81,6 +102,14 @@ table.task {
   table-layout: auto;
   width: var(--task-width);
   border: 0.3em solid black;
+}
+
+table.task.checked {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+}
+
+table.task.checked * {
+  text-decoration: line-through;
 }
 
 table.task button.editTaskButton {
@@ -146,13 +175,15 @@ table.task td.config {
 
 .formPopup {
   display: none;
-  border: 3px solid black;
+  border: 0.3em solid black;
   z-index: 9;
   margin: 0.5em;
 }
 
 .formContainer {
+  overflow-y: scroll;
   width: 23em;
+  height: 50em;
   padding: 0.5em;
   background-color: var(--minor-secondary-colour);
 }
@@ -202,6 +233,6 @@ table.task td.config {
   margin-bottom: 0.7em;
 }
 
-.formContainer button.cancel {
+.formContainer button.secondary {
   background-color: var(--major-primary-colour);
 }

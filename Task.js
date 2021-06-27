@@ -1,15 +1,45 @@
 class Task {
     constructor(data = {}) {
-        this.list = null; // this property is always set by its parent List
+        let todayStr = getTodaysNumericDate();
         // if undefined, will set to a default value, else, will set to given value
-        let today = getTodaysNumericDate();
         this.title = data.title || "New task";
         this.labelIndices = data.labelIndices || [];
-        this.doingStart = data.doingStart || today;
-        this.doingEnd = data.doingEnd || today;
+        this.doingStart = data.doingStart || todayStr;
+        this.doingEnd = data.doingEnd || todayStr;
         this.dotw = data.dotw || [true, true, true, true, true, true, true]; // days of the week
-        this.due = data.due || today;
-        this.priority = data.priority || 0;
+        this.due = data.due || todayStr;
+        this.priority = data.priority || 1;
+        
+        this.active = data.active || true;
+        this.list = null; // this property is always set by its parent List
+        this.checked = false;
+
+        // setting timeout to reset done task checkbox every start of the day
+        let rightNow = new Date();
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0);
+        tomorrow.setMinutes(0);
+        tomorrow.setSeconds(0);
+        tomorrow.setMilliseconds(0);
+        let timeUntilTmrw = tomorrow.getTime() - rightNow.getTime();
+        console.log(timeUntilTmrw);
+        setTimeout(this._resetTimeoutCallback.bind(this), timeUntilTmrw); // .bind solves the issue of passing current context
+    }
+
+    _resetTimeoutCallback() {
+        let todayInt = numericDateToInt(getTodaysNumericDate());
+        console.log(todayInt, numericDateToInt(this.doingStart), numericDateToInt(this.doingEnd), this.dotw[new Date().getDay()])
+        // only reset checkbox if active is true, and date is within this.doingStart and End, and today's dotw is in this.dotw
+        if(
+            this.active && 
+            todayInt >= numericDateToInt(this.doingStart) &&
+            todayInt <= numericDateToInt(this.doingEnd) &&
+            this.dotw[new Date().getDay()]
+        ) {
+                this._setCheck(false);
+                setTimeout(this._resetTimeoutCallback.bind(this), 24 * 60 * 60 * 1000); // since a fresh day start is garunteed here, set next timeout to 24 hours from now
+        }
     }
 
     static _numericToWrittenDate(numericDate) {
@@ -33,6 +63,17 @@ class Task {
           if (a[i] !== b[i]) return false;
         }
         return true;
+    }
+
+    _setCheck(val) {
+        this.checked = val;
+        this.elements.doneCheckbox.checked = val;
+        if(val)
+            this.elements.table.className += " checked";
+        else
+            this.elements.table.className = "task";
+        this.list.updateTaskPosition(this);
+        console.log(this.elements.table);
     }
 
     _getInfoStrings() {
@@ -105,7 +146,9 @@ class Task {
             headerRow = this.elements.headerRow;
         }
 
-        // Creating table - a table is created within the task table so that the different labels can appear side-by-side with a gap
+        // Creating labels
+        // (a table is created within the task table so that the different labels can appear side-by-side with a gap)
+        // (this can't be inside the headerRowContianer != undefined if statement because labels need to be created both during initial task creation and during task updates)
         let labelTable;
         if(this.elements.labelTable == undefined) {
             labelTable = document.createElement("table"); 
@@ -119,27 +162,30 @@ class Task {
         for(let i = 0; i < info.labelIndices.length; i++) {
             let label = allLabels[info.labelIndices[i]];
             Form.addTextNodeTo(labelTable, "td", "label", label.title).style =
-                "border-color: " + Label.arrToCSSColourString(label.colour);/* +
-                "; color: " + Label.arrToCSSColourString(hueInvert(label.colour));*/
+                "border-color: " + Label.arrToCSSColourString(label.colour);
         }
 
-        // Creating edit task button
-        let editTaskButton = Form.createButton("Edit", function() {
-            TaskEditor.openWindow(this.task);
-        }, "editTaskButton");
-        // Storing "this" list because the "this" keyword in the onclick handler refers to the button HTML element instead of this list
-        editTaskButton.task = this;
-
-        // Creating done task checkbox
-        let doneTaskBox = Form.createInputElement("checkbox", "done", false);
-        doneTaskBox.className = "doneTaskBox";
-
-        // Appending elements to container, and container to row 
+        // Creating static buttons and appending elements to container, and container to row 
         if(headerRowContainer != undefined) {
+            // Creating edit task button
+            let editTaskButton = Form.createButton("Edit", function() {
+                TaskEditor.openWindow(this);
+            }.bind(this), "editTaskButton");
+
+            // Creating done task checkbox
+            let doneCheckbox = Form.createInputElement("checkbox", "done", false);
+            doneCheckbox.className = "doneTaskBox";
+            doneCheckbox.onclick = function() {
+                this._setCheck(this.elements.doneCheckbox.checked);
+            }.bind(this);
+            this.elements.doneCheckbox = doneCheckbox;
+
+            // Appending
             headerRowContainer.append(editTaskButton);
-            headerRowContainer.append(doneTaskBox);
+            headerRowContainer.append(doneCheckbox);
             headerRowContainer.append(labelTable);
             headerRow.append(headerRowContainer);
+            
         }
 
         // TITLE ROW
@@ -173,8 +219,7 @@ class Task {
             this.elements.configRow.children[1].innerHTML = info.priority;
         }
         
-        if(parent == null) // meaning the table is being updated/it already exists
-            //this.list.moveTaskTableToIndex(this, i); // move task table to the given position
+        if(parent == undefined) // meaning the table is being updated/it already exists
             this.list.updateTaskPosition(this); // call list function that updates its position in the array and the list table
         else
             parent.appendChild(table);
@@ -188,12 +233,20 @@ class Task {
         this.dotw = data.dotw;
         this.due = data.due;
         this.priority = data.priority;
+        this.active = data.active;
+    }
+
+    archive() {
+        if(this.list)
+            this.list.removeTask(this);
+        this.elements.table.remove();
+        archivedTasks.push(this);
     }
 
     delete() {
         if(this.list)
             this.list.removeTask(this);
-        this.elements.table.remove();
+        this.elements.table.remove()
         delete this;
     }
 }
