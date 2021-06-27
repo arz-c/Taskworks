@@ -1,5 +1,3 @@
-- Make due text change colour when date is approaching
-
 ==== Done ====
 - Have colours associated with labels
 - Add "Create task" and "Create list" buttons
@@ -15,13 +13,16 @@
 - Use .bind wherever context is needed
 - Add an "Active" option to task editor for when the user doesn't want tasks to repeat everyday (based on DOTW settings)
 - Make task text crossed out when the task is checked (maybe change opacity as well)
+- Fix bug where using HTMLElement.remove() leaves behind an empty <tr> that leaves a gap
 - Make checked task move to the bottom of the list
 - Create "Archive" option for tasks and lists
+- Add confirm prompts when deleting/archiving
+- Make due text change colour when date is approaching
 
 ==== Future Improvements ====
-- Fix bug where using HTMLElement.remove() leaves behind an empty <tr> that leaves a gap
 - When task editor is open, save the labels that are checked so that if a new label is created and the label inputs are erased and updated, the ones that were checked remain checked
 - Create archive option for labels
+- Make editors (task, list, and label editors) horizontally scrollable when overflowing due to viewport limitations (i.e., mobile)
 
 xxxx Scrapped Ideas xxxx
 - Change label background colour to associated colour

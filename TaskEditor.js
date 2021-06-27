@@ -34,11 +34,11 @@ class TaskEditor {
         Form.addSpacedInputTo(form, "checkbox", "active", "Active");
     
         // Buttons
-        form.appendChild(Form.createButton("Delete", TaskEditor.deleteTask, "submit"));
-        form.appendChild(Form.createButton("Archive", TaskEditor.archiveTask, "submit secondary"));
-        Form.addHrTo(form);
         form.appendChild(Form.createButton("Save", TaskEditor.save, "submit"));
         form.appendChild(Form.createButton("Cancel", TaskEditor.closeWindow, "submit secondary"));
+        Form.addHrTo(form);
+        form.appendChild(Form.createButton("Archive", TaskEditor.archiveTask, "submit"));
+        form.appendChild(Form.createButton("Delete", TaskEditor.deleteTask, "submit secondary"));
         
 
         // Heirarchy
@@ -82,11 +82,11 @@ class TaskEditor {
         let labevlsDiv = document.getElementById("labelsDiv");
         labevlsDiv.innerHTML = ""; // clear all children;
         TaskEditor._addLabelInputTo(TaskEditor.form, "checkbox", "labels", "Labels"); // add current labels
-        if(TaskEditor.editingTask != undefined) { // if the task editor window is currently open
-             // then update checkmarks
+        if(TaskEditor.selectedTask != undefined) { // if the task editor window is currently open
+            // then update checkmarks
             for(let l of labelsDiv.children) {
                 if(l.tagName == "INPUT") {
-                    l.checked = TaskEditor.editingTask.labelIndices.indexOf(parseInt(l.value)) != -1;
+                    l.checked = TaskEditor.selectedTask.labelIndices.indexOf(parseInt(l.value)) != -1;
                 }
             }
         }
@@ -95,7 +95,7 @@ class TaskEditor {
     static openWindow(task) {
         Form.shiftToLeftmostPos(TaskEditor);
         TaskEditor.div.style.display = "block";
-        TaskEditor.editingTask = task;
+        TaskEditor.selectedTask = task;
         
         let dotwI = 0;
         let prioI = 0;
@@ -180,30 +180,27 @@ class TaskEditor {
                 if(!("labelIndices" in formData)) // adding key to dict
                     formData["labelIndices"] = [];
                 
-                /*let mainTask = TaskEditor.editingTask.labelIndices[0];
-                formData["labelIndices"].push(mainTask);*/
-                
                 for(let l of c.children) { // label
                     if(l.tagName == "INPUT" && l.checked) {
-                        /*if(l.value == mainTask)
-                            continue;*/
                         formData["labelIndices"].push(parseInt(l.value));
                     }
                 }
             }
         }
-        TaskEditor.editingTask.updateInfo(formData);
-        TaskEditor.editingTask.createOrUpdateTable();
+        TaskEditor.selectedTask.updateInfo(formData);
+        TaskEditor.selectedTask.createOrUpdateTable();
         TaskEditor.closeWindow();
     }
 
     static archiveTask() {
-        TaskEditor.editingTask.archive();
+        if(!confirm("Do you want to archive this task?")) return;
+        TaskEditor.selectedTask.archive();
         TaskEditor.closeWindow();
     }
 
     static deleteTask() {
-        TaskEditor.editingTask.delete();
+        if(!confirm("Do you want to permanently delete this task?")) return;
+        TaskEditor.selectedTask.delete();
         TaskEditor.closeWindow();
     }
 }

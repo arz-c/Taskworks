@@ -11,7 +11,7 @@
 }
 
 body {
-  background-color: rgb(128, 35, 35);
+  background-color: var(--major-secondary-colour);
 }
 
 table * {
@@ -99,13 +99,34 @@ table.list tr.newTaskRow button {
 
 table.task {
   background-color: var(--contrast-secondary-colour);
+  border-collapse: collapse;
   table-layout: auto;
   width: var(--task-width);
   border: 0.3em solid black;
 }
 
+table.task td  {
+  padding: 0.2em;
+}
+
 table.task.checked {
   background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+}
+
+table.task.upcoming tr.dates {
+  background-color: yellow;
+}
+
+table.task.upcoming tr.dates * {
+  color: black;
+}
+
+table.task.overdue tr.dates {
+  background-color: red;
+}
+
+table.task.overdue tr.dates * {
+  color: khaki;
 }
 
 table.task.checked * {
@@ -151,16 +172,16 @@ table.task td.label {
   white-space: nowrap;
 }
 
-table.task td.title {
+table.task tr.title td {
   color: var(--minor-primary-colour);
   font-size: 1.2em;
 }
 
-table.task td.dates {
+table.task tr.dates td {
   font-size: 0.95em;
 }
 
-table.task td.config {
+table.task tr.config td {
   font-size: 0.8em;
   font-style: italic;
 }
@@ -181,20 +202,19 @@ table.task td.config {
 }
 
 .formContainer {
-  overflow-y: scroll;
-  width: 23em;
-  height: 50em;
   padding: 0.5em;
+  overflow-y: auto;
+  width: 23em;
+  max-height: calc(100vh - 5em);
   background-color: var(--minor-secondary-colour);
 }
 
 .formContainer input[type=text] {
+  background: var(--contrast-secondary-colour);
   width: 93%;
   padding: 1em;
   margin: 0.3em 0 1.2em 0;
   border: none;
-  background: var(--contrast-secondary-colour);
-  /*font-size: 0.9em;*/
 }
 
 .formContainer input[type=text]:focus {

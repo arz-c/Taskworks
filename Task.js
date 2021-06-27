@@ -1,35 +1,37 @@
 class Task {
     constructor(data = {}) {
-        let todayStr = getTodaysNumericDate();
+        let todayStr = dateObjToNumericDate(new Date());
+        let tmrwStr = new Date();
+        tmrwStr.setDate(tmrwStr.getDate() + 1);
+        tmrwStr = dateObjToNumericDate(tmrwStr);
         // if undefined, will set to a default value, else, will set to given value
         this.title = data.title || "New task";
         this.labelIndices = data.labelIndices || [];
         this.doingStart = data.doingStart || todayStr;
         this.doingEnd = data.doingEnd || todayStr;
+        this.due = data.due || tmrwStr;
         this.dotw = data.dotw || [true, true, true, true, true, true, true]; // days of the week
-        this.due = data.due || todayStr;
         this.priority = data.priority || 1;
         
         this.active = data.active || true;
         this.list = null; // this property is always set by its parent List
         this.checked = false;
 
+        // TIMEOUTS
+
         // setting timeout to reset done task checkbox every start of the day
         let rightNow = new Date();
         let tomorrow = new Date();
+        setDateObjToDayStart(tomorrow);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0);
-        tomorrow.setMinutes(0);
-        tomorrow.setSeconds(0);
-        tomorrow.setMilliseconds(0);
-        let timeUntilTmrw = tomorrow.getTime() - rightNow.getTime();
-        console.log(timeUntilTmrw);
-        setTimeout(this._resetTimeoutCallback.bind(this), timeUntilTmrw); // .bind solves the issue of passing current context
+        setTimeout(this._resetTimeoutCallback.bind(this), tomorrow.getTime() - rightNow.getTime()); // .bind solves the issue of passing current context
+
+        // setting timeout for approaching tasks (upcoming/overdue)
+        this._setApproachingTimeout();
     }
 
     _resetTimeoutCallback() {
-        let todayInt = numericDateToInt(getTodaysNumericDate());
-        console.log(todayInt, numericDateToInt(this.doingStart), numericDateToInt(this.doingEnd), this.dotw[new Date().getDay()])
+        let todayInt = numericDateToInt(dateObjToNumericDate(new Date()));
         // only reset checkbox if active is true, and date is within this.doingStart and End, and today's dotw is in this.dotw
         if(
             this.active && 
@@ -39,6 +41,46 @@ class Task {
         ) {
                 this._setCheck(false);
                 setTimeout(this._resetTimeoutCallback.bind(this), 24 * 60 * 60 * 1000); // since a fresh day start is garunteed here, set next timeout to 24 hours from now
+        }
+    }
+
+    _setApproachingTimeout() {
+        if(this.approachingTimeout != undefined)
+            clearInterval(this.approachingTimeout);
+        
+        let today = new Date();
+        setDateObjToDayStart(today);
+        let upcoming = new Date(this.due);
+        setDateObjToDayStart(upcoming);
+        // upcoming.setDate(upcoming.getDate() - 1); // don't need this step because the date object is auto set 1 day behind for some reason
+        //console.log(upcoming, today, upcoming.getTime() - today.getTime());
+
+        this._clearApproachingStyles();
+        this.approachingTimeout = setTimeout(function() { this._approachingTimeoutCallback(this, 0) }.bind(this), upcoming.getTime() - today.getTime());
+    }
+
+    _clearApproachingStyles() {
+        if(this.elements != undefined) {
+            let table = this.elements.table;
+            table.className = table.className.replace("upcoming", "");
+            table.className = table.className.replace("overdue", "");
+        }
+    }
+
+    _approachingTimeoutCallback(context, type) { // type: 0 = upcoming, 1 = overdue 
+        let table = context.elements.table;
+        if(table.className.indexOf((type == 0) ? " overdue" : " upcoming") != -1) {
+            table.className = table.className.replace((type == 0) ? " overdue" : " upcoming", "");
+        }
+        table.className += (type == 0) ? " upcoming" : " overdue";
+        if(type == 0) { // set overdue timeout
+            let today = new Date();
+            setDateObjToDayStart(today);
+            let due = new Date(context.due);
+            setDateObjToDayStart(due);
+            due.setDate(due.getDate() + 1) // need to add 1 because date obj is auto set 1 day behind for some reason
+
+            setTimeout(function() { this._approachingTimeoutCallback(context, 1) }.bind(this), due.getTime() - today.getTime());
         }
     }
 
@@ -68,12 +110,12 @@ class Task {
     _setCheck(val) {
         this.checked = val;
         this.elements.doneCheckbox.checked = val;
+        let table = this.elements.table;
         if(val)
-            this.elements.table.className += " checked";
+            table.className += " checked";
         else
-            this.elements.table.className = "task";
+            table.className = table.className.replace(" checked", "");
         this.list.updateTaskPosition(this);
-        console.log(this.elements.table);
     }
 
     _getInfoStrings() {
@@ -191,7 +233,8 @@ class Task {
         // TITLE ROW
         if(this.elements.titleRow == undefined) {
             let titleRow = table.insertRow();
-            Form.addTextNodeTo(titleRow, "td", "title", info.title).colSpan = 2;
+            titleRow.className = "title";
+            Form.addTextNodeTo(titleRow, "td", null, info.title).colSpan = 2;
             this.elements.titleRow = titleRow;
         } else {
             this.elements.titleRow.children[0].innerHTML = info.title;
@@ -200,8 +243,9 @@ class Task {
         // DATES ROW
         if(this.elements.datesRow == undefined) {
             let datesRow = table.insertRow();
-            Form.addTextNodeTo(datesRow, "td", "dates alignLeft", info.doing).colSpan = 1;
-            Form.addTextNodeTo(datesRow, "td", "dates alignRight", info.due).colSpan = 1;
+            datesRow.className = "dates";
+            Form.addTextNodeTo(datesRow, "td", "alignLeft", info.doing).colSpan = 1;
+            Form.addTextNodeTo(datesRow, "td", "alignRight", info.due).colSpan = 1;
             this.elements.datesRow = datesRow;
         } else {
             this.elements.datesRow.children[0].innerHTML = info.doing;
@@ -211,8 +255,9 @@ class Task {
         // CONFIG ROW
         if(this.elements.configRow == undefined) {
             let configRow = table.insertRow();
-            Form.addTextNodeTo(configRow, "td", "config alignLeft", info.dotw).colSpan = 1;
-            Form.addTextNodeTo(configRow, "td", "config alignRight", info.priority).colSpan = 1;
+            configRow.className = "config";
+            Form.addTextNodeTo(configRow, "td", "alignLeft", info.dotw).colSpan = 1;
+            Form.addTextNodeTo(configRow, "td", "alignRight", info.priority).colSpan = 1;
             this.elements.configRow = configRow
         } else {
             this.elements.configRow.children[0].innerHTML = info.dotw;
@@ -234,6 +279,7 @@ class Task {
         this.due = data.due;
         this.priority = data.priority;
         this.active = data.active;
+        this._setApproachingTimeout();
     }
 
     archive() {

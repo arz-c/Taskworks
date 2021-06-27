@@ -17,6 +17,13 @@ function updateLabelsEverywhere() {
     }
 }
 
+function setDateObjToDayStart(date) {
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+}
+
 function dateObjToNumericDate(date) {
     return(
         date.getFullYear() + '-' +
@@ -25,16 +32,12 @@ function dateObjToNumericDate(date) {
     );
 }
 
-function getTodaysNumericDate() {
-    return dateObjToNumericDate(new Date());
-}
-
 function numericDateToInt(date) {
     date = date.split('-');
     return(
-        365 * parseInt(date[2]) +
-        30.5 * parseInt(date[0]) +
-        parseInt(date[1])
+        365 * parseInt(date[0]) +
+        30.5 * parseInt(date[1]) +
+        parseInt(date[2])
     );
 }
 

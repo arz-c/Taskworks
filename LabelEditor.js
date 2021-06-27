@@ -40,7 +40,7 @@ class LabelEditor {
                         break;
                 }
         }
-        LabelEditor.editingLabel.updateInfo(formData);
+        LabelEditor.selectedLabel.updateInfo(formData);
         updateLabelsEverywhere();
         LabelEditor.closeWindow();
     }
@@ -48,7 +48,7 @@ class LabelEditor {
     static openWindow(label) {
         Form.shiftToLeftmostPos(LabelEditor);
         LabelEditor.div.style.display = "block";
-        LabelEditor.editingLabel = label;
+        LabelEditor.selectedLabel = label;
 
         for(let c of LabelEditor.form.children) {
             if(c.tagName == "INPUT") {
@@ -69,7 +69,8 @@ class LabelEditor {
     }
 
     static deleteLabel() {
-        LabelEditor.editingLabel.delete();
+        if(!confirm("Do you want to permanently delete this label?")) return;
+        LabelEditor.selectedLabel.delete();
         LabelEditor.closeWindow();
     }
 }

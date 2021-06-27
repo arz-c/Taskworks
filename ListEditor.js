@@ -15,11 +15,11 @@ class ListEditor {
         Form.addSpacedInputTo(form, "text", "title", "Title");
         
         // Buttons
-        form.appendChild(Form.createButton("Archive", ListEditor.archiveList, "submit"));
-        form.appendChild(Form.createButton("Delete", ListEditor.deleteList, "submit secondary"));
-        Form.addHrTo(form);
         form.appendChild(Form.createButton("Save", ListEditor.save, "submit"));
         form.appendChild(Form.createButton("Cancel", ListEditor.closeWindow, "submit secondary"));
+        Form.addHrTo(form);
+        form.appendChild(Form.createButton("Archive", ListEditor.archiveList, "submit"));
+        form.appendChild(Form.createButton("Delete", ListEditor.deleteList, "submit secondary"));
     
         // Heirarchy
         div.appendChild(form);
@@ -36,15 +36,15 @@ class ListEditor {
                         break;
                 }
         }
-        ListEditor.editingList.updateInfo(formData);
-        ListEditor.editingList.updateTable();
+        ListEditor.selectedList.updateInfo(formData);
+        ListEditor.selectedList.updateTable();
         ListEditor.closeWindow();
     }
 
     static openWindow(list) {
         Form.shiftToLeftmostPos(ListEditor);
         ListEditor.div.style.display = "block";
-        ListEditor.editingList = list;
+        ListEditor.selectedList = list;
         for(let c of ListEditor.form.children) {
             if(c.tagName == "INPUT") {
                 switch(c.name) {
@@ -61,12 +61,14 @@ class ListEditor {
     }
 
     static archiveList() {
-        ListEditor.editingList.archive();
+        if(!confirm("Do you want to archive this list and all of its tasks?")) return;
+        ListEditor.selectedList.archive();
         ListEditor.closeWindow();
     }
 
     static deleteList() {
-        ListEditor.editingList.delete();
+        if(!confirm("Do you want to permanently delete this list?")) return;
+        ListEditor.selectedList.delete();
         ListEditor.closeWindow();
     }
 }

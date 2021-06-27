@@ -121,6 +121,9 @@ class List {
     }
 
     archive() {
+        for(let i = this.tasks.length - 1; i >= 0; i--) { // this is done backwards because elements are being dynamically removed from this.tasks
+            this.tasks[i].archive();
+        }
         allLists.splice(allLists.indexOf(this), 1);
         this.elements.table.remove();
         archivedLists.push(this);
