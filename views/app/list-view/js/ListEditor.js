@@ -17,9 +17,9 @@ class ListEditor {
         // Buttons
         form.appendChild(Form.createButton("Save", ListEditor.save, "submit"));
         form.appendChild(Form.createButton("Cancel", ListEditor.closeWindow, "submit secondary"));
-        Form.addHrTo(form);
-        form.appendChild(Form.createButton("Archive", ListEditor.archiveList, "submit"));
-        form.appendChild(Form.createButton("Delete", ListEditor.deleteList, "submit secondary"));
+        /*Form.addHrTo(form);
+        form.appendChild(Form.createButton("Archive", ListEditor.archiveList, "submit"));*/
+        form.appendChild(Form.createButton("Delete", ListEditor.deleteList, "submit"));
     
         // Heirarchy
         div.appendChild(form);
@@ -67,7 +67,7 @@ class ListEditor {
     }
 
     static deleteList() {
-        if(!confirm("Do you want to permanently delete this list?")) return;
+        if(!confirm("Do you want to permanently delete this list and all of its tasks?")) return;
         ListEditor.selectedList.delete();
         ListEditor.closeWindow();
     }

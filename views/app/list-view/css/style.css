@@ -1,258 +1,342 @@
 :root {
-  /* Variables */
-  --major-primary-colour: goldenrod;
-  --major-secondary-colour: rgb(128, 35, 35);
-  --minor-primary-colour: maroon;
-  --minor-secondary-colour: rgb(255, 200, 200);
-  --contrast-primary-colour: rgb(150, 150, 150);
-  --contrast-secondary-colour: rgb(230, 230, 230);
-  --heading-text-size: 1.5em;
-  --task-width: 17em;
+    /* Variables */
+    --primary-colour: rgb(128, 35, 35);
+    --secondary-colour: rgb(255, 175, 175);
+    --border-colour: black;
+    --high-contrast-colour: black;
+    --contrast-colour: rgb(230, 230, 230);
+    
+    --heading-text-size: 1.4em;
+    --task-width: 17em;
 }
 
+* {
+    font-family: Arial, Helvetica, sans-serif;
+    word-break: break-word;
+}
+
+
 body {
-  background-color: var(--major-secondary-colour);
+    background-color: var(--primary-colour);
+    margin: 0.6em;
 }
 
 table * {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 button {
-  text-align: center;
-  border: 0em;
-  font: inherit;
-  line-height: 1;
+    text-align: center;
+    border: 0;
+    font-size: inherit;
+    line-height: 1;
 }
 
 button:hover,
 button:focus {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.2) 0 0);
+    cursor: pointer;
+}
+
+input[type="checkbox"]:hover {
+    cursor: pointer;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+    width: 0.5em;
+    height: 0.5em;
 }
 ::-webkit-scrollbar-track {
-  background: var(--contrast-secondary-colour);
+    background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--major-secondary-colour);
+    background: var(--high-contrast-colour);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
+    cursor: pointer;
 }
 
 hr {
-  background-color: black;
-  border-width: 0;
-  height: 0.3em;
+    background-color: var(--border-colour);
+    border-width: 0;
+    height: 0.3em;
 }
 
-#newListButton {
-  color: var(--major-secondary-colour);
-  background-color: var(--major-primary-colour);
-  font-weight: bold;
-  font-size: var(--heading-text-size);
-  margin: 0.5em;
-  box-sizing: border-box;
-  padding: 0.5em 2em;
-}
-
-.alignLeft {
-  text-align: left;
-}
-
-.alignRight {
-  text-align: right;
-}
-
-table.list {
-  background-color: var(--minor-secondary-colour);
-  float: left;
-  margin: 0.5em;
-  border: 0.4em solid black;
-  border-spacing: 0.4em;
-}
-
-table.list > thead > button.title {
-  color: var(--minor-primary-colour);
-  /*background-color: var(--minor-secondary-colour);*/
-  background-color: transparent;
-  font-size: var(--heading-text-size);
-  width: 100%;
-}
-
-table.list tr.newTaskRow td {
-  text-align: center;
-  display: block;
-  margin: auto;
-}
-
-table.list tr.newTaskRow button {
-  color: var(--major-primary-colour);
-  background-color: var(--major-secondary-colour);
-  margin: 0.5em;
-  padding: 1em 2em;
-}
-
-table.task {
-  background-color: var(--contrast-secondary-colour);
-  border-collapse: collapse;
-  table-layout: auto;
-  width: var(--task-width);
-  border: 0.3em solid black;
-}
-
-table.task td  {
-  padding: 0.2em;
-}
-
-table.task.checked {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.1) 0 0);
-}
-
-table.task.upcoming tr.dates {
-  background-color: yellow;
-}
-
-table.task.upcoming tr.dates * {
-  color: black;
-}
-
-table.task.overdue tr.dates {
-  background-color: red;
-}
-
-table.task.overdue tr.dates * {
-  color: khaki;
-}
-
-table.task.checked * {
-  text-decoration: line-through;
-}
-
-table.task button.editTaskButton {
-  color:white;
-  background-color: black;
-  float: right;
-  margin-bottom: -100% + 0.5em;
-  font-size: 0.7em;
-}
-
-table.task .doneTaskBox {
-  float: right;
-  margin-right: 0.5em;
-}
-
-table.task table.labelTable {
-  border-spacing: 0.3em;
-  table-layout: fixed;
-  
-  /* Flex stuff */
-  display: flex;
-  flex-flow: wrap;
-  column-gap: 0.3em;
-  row-gap: 0.3em;
-  width: var(--task-width) - 4; /* {<<<} */
-}
-
-table.task td.label {
-  color: var(--minor-primary-colour);
-  background-color: var(--minor-secondary-colour);
-  border: 0.4em solid;
-  font-size: 0.9em;
-  vertical-align: middle;
-  padding: 0.1em;
-
-  /* Adds elipses when text overflows the fixed width located at {<<<} */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-table.task tr.title td {
-  color: var(--minor-primary-colour);
-  font-size: 1.2em;
-}
-
-table.task tr.dates td {
-  font-size: 0.95em;
-}
-
-table.task tr.config td {
-  font-size: 0.8em;
-  font-style: italic;
+#welcome {
+    color: var(--secondary-colour);
 }
 
 #uiContainer {
-  position: fixed;
-  bottom: 0em;
-  right: 0em;
-  display: flex;
-  align-items: flex-end;
+    position: fixed;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+#logOut {
+    color: var(--primary-colour);
+    background-color: var(--contrast-colour);
+    margin: 0.5em;
+    padding: 0.5em 1em;
+    font-weight: bold;
+}
+
+#viewLink {
+    color: var(--secondary-colour);
+    vertical-align: middle;
+}
+
+#newListButton {
+    color: var(--primary-colour);
+    background-color: var(--secondary-colour);
+    font-weight: bold;
+    font-size: var(--heading-text-size);
+    margin: 0.5em;
+    box-sizing: border-box;
+    padding: 0.5em 2em;
+}
+
+.alignLeft {
+    text-align: left;
+}
+
+.alignRight {
+    text-align: right;
+}
+
+.list {
+    background-color: var(--secondary-colour);
+    float: left;
+    margin: 0.5em;
+    border: 0.3em solid var(--border-colour);
+    border-spacing: 0.4em;
+}
+
+.list > thead > .title {
+    color: var(--primary-colour);
+    background-color: transparent;
+    font-size: var(--heading-text-size);
+    width: 100%;
+}
+
+.list .newTaskRow td {
+    text-align: center;
+    display: block;
+    margin: auto;
+}
+
+.list .newTaskRow button {
+    color: var(--secondary-colour);
+    background-color: var(--primary-colour);
+    margin: 0.5em;
+    font-size: 1.3em;
+    padding: 0.7em 1.4em;
+}
+
+.list .checkedTable {
+    display: none;
+}
+
+.list .showCheckedRow td {
+    text-align: center;
+    display: block;
+    margin: auto;
+}
+
+.list .showCheckedRow button {
+    color: var(--secondary-colour);
+    background-color: var(--primary-colour);
+    margin: 0.5em;
+    margin-top: 0;
+    padding: 0.3em;
+}
+
+.task {
+    background-color: var(--contrast-colour);
+    border-collapse: collapse;
+    table-layout: auto;
+    max-width: var(--task-width);
+    border: 0.2em solid var(--border-colour);
+}
+
+.task td  {
+    padding: 0.2em;
+}
+
+.task.checked {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4) 0 0);
+}
+
+.task.checked .title td, .task.checked .dates td, .task.checked .config td {
+    color: black;
+    text-decoration: line-through;
+}
+
+.task.checked .dates {
+    /* Reset upcoming/overdue CSS if the task is checked (!important allows it to override) */
+    background-color: transparent !important;
+    color: black !important;
+}
+
+.task.upcoming .dates {
+    background-color: yellow;
+    color: black;
+}
+
+.task.overdue .dates {
+    background-color: maroon;
+    color: goldenrod;
+}
+
+
+.task .editTaskButton {
+    color:white;
+    background-color: var(--high-contrast-colour);
+    float: right;
+    /*margin-bottom: -100% + 0.5em;*/
+    font-size: 0.6em;
+}
+
+.task .doneTaskBox {
+    float: right;
+    margin-right: 0.5em;
+}
+
+.task .labelTable {
+    border-spacing: 0.3em;
+    table-layout: fixed;
+
+    /* Flex stuff */
+    display: flex;
+    flex-flow: wrap;
+    column-gap: 0.3em;
+    row-gap: 0.3em;
+    width: calc(var(--task-width) - 4em); /* {<<<} */
+}
+
+.task .label {
+    color: var(--primary-colour);
+    background-color: var(--secondary-colour);
+    border: 0.25em solid;
+    font-size: 0.8em;
+    vertical-align: middle;
+    padding: 0.1em;
+
+    /* Adds elipses when text overflows the fixed width located at {<<<} */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task .title td {
+    color: var(--primary-colour);
+    font-size: 1em;
+    word-break: break-word;
+}
+
+.task .dates td {
+    font-size: 0.85em;
+}
+
+.task .config td {
+    font-size: 0.7em;
+    font-style: italic;
+}
+
+#editorContainer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    align-items: flex-end;
 }
 
 .formPopup {
-  display: none;
-  border: 0.3em solid black;
-  z-index: 9;
-  margin: 0.5em;
+    display: none;
+    border: 0.3em solid var(--border-colour);
+    z-index: 9;
+    margin: 0.5em;
 }
 
 .formContainer {
-  padding: 0.5em;
-  overflow-y: auto;
-  width: 23em;
-  max-height: calc(100vh - 5em);
-  background-color: var(--minor-secondary-colour);
+    padding: 0.5em;
+    overflow-y: auto;
+    width: 23em;
+    max-height: calc(100vh - 7em);
+    background-color: var(--secondary-colour);
+}
+
+.formContainer input, textarea, select {
+    box-sizing: border-box; /* fixes width 100% exceeding parent width problem*/
+    background: var(--contrast-colour);
+    border: 0.1em solid var(--border-colour);
+    padding: 0.1em;
+}
+
+.formContainer input, textarea, select, .editLabelContainer {
+    font-size: 0.8em;
 }
 
 .formContainer input[type=text] {
-  background: var(--contrast-secondary-colour);
-  width: 93%;
-  padding: 1em;
-  margin: 0.3em 0 1.2em 0;
-  border: none;
+    background: var(--contrast-colour);
+    width: 100%;
+    margin: 0.3em 0 1.2em 0;
 }
 
 .formContainer input[type=text]:focus {
-  background-color: #ddd;
-  outline: none;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.03) 0 0);
 }
 
 .formContainer input[type=date] {
-  width: 100%;
+    
+    width: 100%;
+}
+
+.formContainer select, textarea {
+    width: 100%;
 }
 
 .formContainer h1 {
-  color: var(--major-primary-colour);
-  background-color: var(--major-secondary-colour);
-  text-align: center;
-  padding: 0.3em;
+    color: var(--secondary-colour);
+    background-color: var(--primary-colour);
+    text-align: center;
+    padding: 0.3em;
 }
 
 .formContainer .header {
-  color: var(--minor-primary-colour);
-  font-weight: bold;
-  font-size: 1.1em;
+    color: var(--primary-colour);
+    font-weight: bold;
+    font-size: 1em;
 }
 
-.formContainer button.editLabel {
-  background-color: transparent;
+.formContainer #labelListDiv {
+    display: flex;
+    flex-wrap: wrap;
 }
 
-.formContainer button.submit {
-  background-color: var(--major-secondary-colour);
-  color: white;
-  padding: 1em 1.2em;
-  width: 100%;
-  border: none;
-  cursor: pointer;
-  margin-bottom: 0.7em;
+.formContainer .editLabel {
+    background-color: transparent;
 }
 
-.formContainer button.secondary {
-  background-color: var(--major-primary-colour);
+.formContainer .editLabelContainer {
+    width: fit-content;
+}
+
+.formContainer .submit {
+    background-color: var(--primary-colour);
+    color: var(--contrast-colour);
+    padding: 1em 1.2em;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 0.7em;
+}
+
+.formContainer .secondary {
+    background-color: var(--contrast-colour);
+    color: var(--primary-colour);
 }

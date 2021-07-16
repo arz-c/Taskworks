@@ -5,36 +5,71 @@ class Task {
         tmrwStr.setDate(tmrwStr.getDate() + 1);
         tmrwStr = dateObjToNumericDate(tmrwStr);
         // if undefined, will set to a default value, else, will set to given value
+        // the (data.x != undefined) is only needed for those that require a type change from string -> other type (because everything from database is always in string form)
         this.title = data.title || "New task";
-        this.labelIndices = data.labelIndices || [];
+        this.description = data.description || "";
+        this.labelIndices = (data.labelIndices != undefined) ? data.labelIndices.map(x => parseInt(x)) : [];
+        this.mainLabel = parseInt(data.mainLabel) || 0; // used in Calendar View to determine which label the task will use as its border colour; set to 0 by default, but when it's used, a check is done to ensure task.labelIndices has a 0th element
         this.doingStart = data.doingStart || todayStr;
         this.doingEnd = data.doingEnd || todayStr;
         this.due = data.due || tmrwStr;
-        this.dotw = data.dotw || [true, true, true, true, true, true, true]; // days of the week
-        this.priority = data.priority || 1;
+        this.dotw = (data.dotw != undefined) ? data.dotw.map(x => x == "true") : [true, true, true, true, true, true, true]; // days of the week
+        this.frequency = parseInt(data.frequency) || 0;
+        this.priority = (data.priority != undefined) ? parseInt(data.priority) : 1;
         
-        this.active = data.active || true;
-        this.list = null; // this property is always set by its parent List
-        this.checked = false;
+        this.active = (data.active != undefined) ? (data.active == "true") : true;
+        this.list = (data.listIndex != undefined) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
+        this.checked = (data.checked != undefined) ? (data.checked == "true") : false;
+        this.checkedByDay = data.checkedByDay || []; // since this isn't being used in List View, no need to convert string => bool as we are in Calendar View's Task
 
         // TIMEOUTS
 
-        // setting timeout to reset done task checkbox every start of the day
-        let rightNow = new Date();
-        let tomorrow = new Date();
-        setDateObjToDayStart(tomorrow);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        setTimeout(this._resetTimeoutCallback.bind(this), tomorrow.getTime() - rightNow.getTime()); // .bind solves the issue of passing current context
+        if(!data.archived) { // don't want to set timeouts if this task is archived
+            // setting timeout to reset done task checkbox every start of the day
+            // IMPORTANT: this needs to be done both on the client and server:
+            //     1. client for when page isn't refreshed by the user
+            //     2. server for when page isn't open by the user
+            /* Commented out because realized that this feature may be annoying if a task is done early
+            let rightNow = new Date();
+            let tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            setDateObjToDayStart(tomorrow);
+            let deltaT = tomorrow.getTime() - rightNow.getTime();
+            console.log(`'${this.title}' will be checked for reset in ` +
+                `${Math.floor(deltaT / 1000 / 60 / 60)} hours and ` +
+                `${Math.round(deltaT / 1000 / 60 % 60)} minutes`);
+            setTimeout(this._resetTimeoutCallback.bind(this), deltaT); // .bind solves the issue of passing current context*/
 
-        // setting timeout for approaching tasks (upcoming/overdue)
-        this._setApproachingTimeout();
+            // setting timeout for approaching tasks (upcoming/overdue)
+            this._setApproachingTimeout();
+        }
+    }
+
+    objectify() {
+        return {
+            title: this.title,
+            description: this.description,
+            labelIndices: this.labelIndices,
+            mainLabel: this.mainLabel,
+            doingStart: this.doingStart,
+            doingEnd: this.doingEnd,
+            due: this.due,
+            dotw: this.dotw,
+            frequency: this.frequency,
+            priority: this.priority,
+            
+            active: this.active,
+            listIndex: allLists.indexOf(this.list),
+            checked: this.checked,
+            checkedByDay: this.checkedByDay
+        }
     }
 
     _resetTimeoutCallback() {
         let todayInt = numericDateToInt(dateObjToNumericDate(new Date()));
-        // only reset checkbox if active is true, and date is within this.doingStart and End, and today's dotw is in this.dotw
         if(
-            this.active && 
+            this.active &&
+            this.checked &&
             todayInt >= numericDateToInt(this.doingStart) &&
             todayInt <= numericDateToInt(this.doingEnd) &&
             this.dotw[new Date().getDay()]
@@ -46,17 +81,27 @@ class Task {
 
     _setApproachingTimeout() {
         if(this.approachingTimeout != undefined)
-            clearInterval(this.approachingTimeout);
+            clearTimeout(this.approachingTimeout);
+        this._clearApproachingStyles();
         
-        let today = new Date();
-        setDateObjToDayStart(today);
+        let rightNow = new Date();
         let upcoming = new Date(this.due);
         setDateObjToDayStart(upcoming);
-        // upcoming.setDate(upcoming.getDate() - 1); // don't need this step because the date object is auto set 1 day behind for some reason
-        //console.log(upcoming, today, upcoming.getTime() - today.getTime());
+        //upcoming.setDate(upcoming.getDate() - 1); // don't need this step because the date object is auto set 1 day behind for some reason
+        let deltaT = upcoming.getTime() - rightNow.getTime();
 
-        this._clearApproachingStyles();
-        this.approachingTimeout = setTimeout(function() { this._approachingTimeoutCallback(this, 0) }.bind(this), upcoming.getTime() - today.getTime());
+        if(deltaT > 1000 * 60 * 60 * 24) { // if greater than a day (can't let it get really big because setTimeout has a 32-bit limit)
+            //console.log(`'${this.title}' will not be set to  'approaching due-date' since due-date is too far away`);            
+            return;
+        } else if(deltaT >= 0) { // don't print this message if the task is already approaching
+            console.log(`'${this.title}' will be set to 'approaching due-date' in ` +
+                `${Math.floor(deltaT / 1000 / 60 / 60)} hours and ` +
+                `${Math.round(deltaT / 1000 / 60 % 60)} minutes`);
+        }
+        
+        this.approachingTimeout = setTimeout(
+            function() { this._approachingTimeoutCallback(this, 0); }.bind(this)
+        , deltaT);
     }
 
     _clearApproachingStyles() {
@@ -82,18 +127,20 @@ class Task {
 
             setTimeout(function() { this._approachingTimeoutCallback(context, 1) }.bind(this), due.getTime() - today.getTime());
         }
+        /*if(!this.checked) // if task is checked, apporaching styles aren't visible so no point in printing message
+            console.log(`'${this.title}' is '${(type == 0) ? "upcoming" : "overdue"}'`)*/
     }
 
     static _numericToWrittenDate(numericDate) {
         // a numeric date follows: YYYY-MM-DD
         // a written date follows: Mon #
         let date = new Date(numericDate);
-        // increasing date by 1 because creating Date object using the numeric date format described above sets date 1 day behind for some reason
+        date.setDate(date.getDate() + 1) // increasing date by 1 because creating Date object using the numeric date format described above sets date 1 day behind for some reason
         let month = MONTH_STRINGS[date.getMonth()];
         if(date.getFullYear() != new Date().getFullYear())  // if parameter date's year is different than today's year
             return month + " " + date.getFullYear().toString().substr(0); // return YYY Mon
         else
-            return month + " " + (date.getDate() + 1); // return Mon DD
+            return month + " " + date.getDate(); // return Mon DD
     }
 
     static _areArraysEqual(a, b) {
@@ -107,7 +154,7 @@ class Task {
         return true;
     }
 
-    _setCheck(val) {
+    _setCheck(val, shouldPushToDB = true) {
         this.checked = val;
         this.elements.doneCheckbox.checked = val;
         let table = this.elements.table;
@@ -116,6 +163,7 @@ class Task {
         else
             table.className = table.className.replace(" checked", "");
         this.list.updateTaskPosition(this);
+        if(shouldPushToDB) pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
     }
 
     _getInfoStrings() {
@@ -129,7 +177,7 @@ class Task {
                 + " - " +
                 Task._numericToWrittenDate(this.doingEnd)
         }
-
+        
         // DOTW String
         let dotwString = "";
         if(Task._areArraysEqual(this.dotw, [true, true, true, true, true, true, true]))
@@ -159,8 +207,155 @@ class Task {
             priority: "Priority: " + priorityString.toLowerCase()
         };
     }
+
+    _createLabelTable(info, labelTable) {
+        // Creating labels
+        // (a table is created within the task table so that the different labels can appear side-by-side with a gap)
+        // (this can't be inside the headerRowContianer != undefined if statement because labels need to be created both during initial task creation and during task updates)
+        for(let i = 0; i < info.labelIndices.length; i++) {
+            let label = allLabels[info.labelIndices[i]];
+            Form.addTextNodeTo(labelTable, "td", "label", label.title).style =
+                "border-color: " + Label.arrToCSSColourString(label.colour);
+        }
+    }
+
+    createTable(parent, id) { // id is a unique identifier (which Day is setting as its unique date number) used for storing the specific set of elements into this.elements
+        // SETUP
+        let info = this._getInfoStrings();
+        if(this.elements == undefined) // if this is the first time the table is being drawn
+            this.elements = {};
+        let e = this.elements;
+
+        // TABLE
+        let table = document.createElement("table");
+        table.className = "task";
+        e.table = table;
+
+        // HEADER ROW
+        // Creating row and container - a td is used to hold the row so that the colSpan property can be edited
+        let headerRow = table.insertRow();
+        let headerRowContainer = document.createElement("td"); 
+        headerRowContainer.colSpan = 2;
+        e.headerRow = headerRow;
+
+        // Labels
+        let labelTable = document.createElement("table"); 
+        labelTable.className = "labelTable"
+        e.labelTable = labelTable;
+        this._createLabelTable(info, labelTable);
+
+        // Static Buttons
+        // creating edit task button
+        let editTaskButton = Form.createButton("Edit", function() {
+            TaskEditor.openWindow(this);
+        }.bind(this), "editTaskButton");
+
+        // creating done task checkbox
+        let doneCheckbox = Form.createInputElement("checkbox", "done", false);
+        doneCheckbox.className = "doneTaskBox";
+        doneCheckbox.onclick = function() {
+            this._setCheck(e.doneCheckbox.checked);
+        }.bind(this);
+        e.doneCheckbox = doneCheckbox;
+
+        // Appending
+        let labelCol = document.createElement("td");
+        labelCol.appendChild(labelTable);
+        let buttonCol = document.createElement("td");
+        buttonCol.appendChild(editTaskButton);
+        buttonCol.appendChild(doneCheckbox);
+        headerRowContainer.appendChild(labelCol);
+        headerRowContainer.appendChild(buttonCol);
+        headerRow.append(headerRowContainer);
+
+        // TITLE ROW
+        let titleRow = table.insertRow();
+        titleRow.className = "title";
+        Form.addTextNodeTo(titleRow, "td", null, info.title).colSpan = 2;
+        e.titleRow = titleRow;
+
+        // DATES ROW
+        let datesRow = table.insertRow();
+        datesRow.className = "dates";
+        Form.addTextNodeTo(datesRow, "td", "alignLeft", info.doing).colSpan = 1;
+        Form.addTextNodeTo(datesRow, "td", "alignRight", info.due).colSpan = 1;
+        e.datesRow = datesRow;
+
+        // CONFIG ROW
+        let configRow = table.insertRow();
+        configRow.className = "config";
+        Form.addTextNodeTo(configRow, "td", "alignLeft", info.dotw).colSpan = 1;
+        Form.addTextNodeTo(configRow, "td", "alignRight", info.priority).colSpan = 1;
+        e.configRow = configRow
+
+        // APPENDING
+        parent.appendChild(table);
+
+        // SETTING CHECK
+        this._setCheck(this.checked, false); // false at the end because don't want to push to DB before this.list is even added to allLists
+    }
       
-    createOrUpdateTable(parent) {
+    updateTable() {
+        // SETUP
+        let info = this._getInfoStrings();
+        let e = this.elements;
+        
+        // HEADER ROW -> LABEL TABLE
+        e.labelTable.innerHTML = ""; // empty label first
+        this._createLabelTable(info, e.labelTable);
+
+        // TITLE ROW
+        e.titleRow.children[0].innerHTML = info.title;
+    
+        // DATES ROW
+        e.datesRow.children[0].innerHTML = info.doing;
+        e.datesRow.children[1].innerHTML = info.due;
+    
+        // CONFIG ROW
+        e.configRow.children[0].innerHTML = info.dotw;
+        e.configRow.children[1].innerHTML = info.priority;
+
+        // CHECKED OR NOT
+        this._setCheck(this.checked);
+
+        // PUSHING UPDATES
+        this.list.updateTaskPosition(this) // calling list function that updates its position in the array and the list table
+    }
+      
+    updateInfo(data) {
+        this.title = data.title;
+        this.description = data.description;
+        this.labelIndices = data.labelIndices;
+        this.mainLabel = data.mainLabel;
+        this.doingStart = data.doingStart;
+        this.doingEnd = data.doingEnd;
+        this.dotw = data.dotw;
+        this.frequency = data.frequency;
+        this.due = data.due;
+        this.priority = data.priority;
+        this.active = data.active;
+        this._setApproachingTimeout();
+        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
+    }
+
+    archive() {
+        if(this.list)
+            this.list.removeTask(this);
+        this.elements.table.remove();
+        archivedTasks.push(this);
+        pushToDB("archivedTasks", "add", {object: this.list.objectify()});
+        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
+    }
+
+    delete() {
+        if(this.list)
+            this.list.removeTask(this);
+        this.elements.table.remove()
+        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
+        delete this;
+    }
+
+     /*createOrUpdateTable(parent) {
         if(this.elements == undefined) // if this is the first time the table is being drawn
             this.elements = [];
 
@@ -264,35 +459,14 @@ class Task {
             this.elements.configRow.children[1].innerHTML = info.priority;
         }
         
+        // APPENDING
         if(parent == undefined) // meaning the table is being updated/it already exists
             this.list.updateTaskPosition(this); // call list function that updates its position in the array and the list table
         else
             parent.appendChild(table);
-    }
 
-    updateInfo(data) {
-        this.title = data.title;
-        this.labelIndices = data.labelIndices;
-        this.doingStart = data.doingStart;
-        this.doingEnd = data.doingEnd;
-        this.dotw = data.dotw;
-        this.due = data.due;
-        this.priority = data.priority;
-        this.active = data.active;
-        this._setApproachingTimeout();
-    }
+        // CHECKED OR NOT
+        this._setCheck(this.checked);
+    }*/
 
-    archive() {
-        if(this.list)
-            this.list.removeTask(this);
-        this.elements.table.remove();
-        archivedTasks.push(this);
-    }
-
-    delete() {
-        if(this.list)
-            this.list.removeTask(this);
-        this.elements.table.remove()
-        delete this;
-    }
 }

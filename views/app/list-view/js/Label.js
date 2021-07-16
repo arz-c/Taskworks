@@ -1,12 +1,19 @@
 class Label {
-    constructor(title, colour) {
-        this.title = title || "New label";
-        this.colour = colour || [0, 0, 0];
+    constructor(data = {}) {
+        this.title = data.title || "New label";
+        this.colour = (data.colour != undefined) ? data.colour.map(x => parseInt(x)) : [0, 0, 0];
         // IMPORTANT: whenever a new label is added to allLabels, TaskEditor.updateLabels() must be called
         // it can't be called from here because by the time it would be called, the new label would not be appended to allLabels yet
         
         // in the case that an existing label is updated, updateLabelsEverywhere(), a global function, must be called to update
         // all labels present within all tasks
+    }
+
+    objectify() {
+        return {
+            title: this.title,
+            colour: this.colour
+        }
     }
 
     static parseInput(inputStr) {
@@ -53,20 +60,23 @@ class Label {
     updateInfo(data) {
         this.title = data.title;
         this.colour = data.colour;
+        pushToDB("labels", "edit", {index: allLabels.indexOf(this), object: this.objectify()});
     }
 
     delete() {
-        // can't use updateLabelsEverywhere() here because need to remove the deleted label from each task's labelIndices before calling the task's createOrUpdateTable function
+        // can't use updateLabelsEverywhere() here because need to remove the deleted label from each task's labelIndices before calling the task's updateTable function
         let toBeDeletedL = allLabels.indexOf(this); // toBeDeletedL is actually an index as well, since all labels are based on their index in allLabels
         for(let list of allLists) {
             for(let task of list.tasks) {
                 let toBeDeletedI = task.labelIndices.indexOf(toBeDeletedL);
                 if(toBeDeletedI != -1)
                     task.labelIndices.splice(toBeDeletedI, 1);
-                task.createOrUpdateTable();
+                task.updateTable();
             }
         }
-        allLabels.splice(allLabels.indexOf(this), 1);
+        let allLabelsIndex = allLabels.indexOf(this);
+        pushToDB("labels", "remove", {index: allLabelsIndex});
+        allLabels.splice(allLabelsIndex, 1);
         TaskEditor.updateLabels();
         delete this;
     }

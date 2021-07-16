@@ -8,11 +8,106 @@ let allLists = [];
 let archivedTasks = [];
 let archivedLists = [];
 
+const _myDatabaseID = document.getElementById("databaseID").innerHTML; // a unique ID provided by the server, used to verify when communicating with database
+
+function createList(list = null) {
+    if(list == null) {
+        list = new List();
+        ListEditor.openWindow(list)
+    }
+    allLists.push(list);
+    pushToDB("lists", "add", {object: list.objectify()});
+}
+
+/*function restoreArchivedList(list) {
+    archivedLists.splice(archivedLists.indexOf(list), 1);
+    pushToDB("archivedLists", "remove", {object: list.objectify()});
+    createList(list);
+}
+
+function restoreArchivedTask(task) {
+    archivedTasks.splice(archivedTasks.indexOf(task), 1);
+    pushToDB("archivedTask", "remove", {object: task.objectify()});
+    allLists[task.list].addTask(task);
+}*/
+
+function _serialize(obj, parent = null) {
+    let str = [];
+    let o;
+    if(typeof(obj.objectify) == "function")
+        o = obj.objectify();
+    else
+        o = obj;
+    for(let p in o) {
+        if(typeof(o[p]) == "object") {
+            let oo;
+            if(typeof(o[p].objectify) == "function")
+                oo = o[p].objectify();
+            else
+                oo = o[p];
+            for(let pp in oo) {
+                if(typeof(oo[pp]) == "object")
+                    str.push(_serialize(oo[pp], (parent != null) ? parent + "[" + p + "]" + "[" + pp + "]" : p + "[" + pp + "]"));
+                else {
+                    if(parent != null)
+                        str.push(parent + "[" + encodeURIComponent(p) + "]" + "[" + encodeURIComponent(pp) + "]=" + encodeURIComponent(oo[pp]))
+                    else
+                        str.push(encodeURIComponent(p) + "[" + encodeURIComponent(pp) + "]=" + encodeURIComponent(oo[pp]))
+                }
+            }
+        } else {
+            if(parent != null)
+                str.push(parent + "[" + encodeURIComponent(p) + "]" + "=" + encodeURIComponent(o[p]));
+            else
+                str.push(encodeURIComponent(p) + "=" + encodeURIComponent(o[p]));
+        }
+    }
+    return str.join("&");
+}
+
+function _sendHTTPRequest(reqType, url, urlParams, callback = null) {
+    // Create the request object
+    const xhttp = new XMLHttpRequest();
+
+    // Define a callback function
+    if(callback != null)
+        xhttp.onload = callback.bind(xhttp);
+    else {
+        xhttp.onload = function() {
+            console.log("Response:", xhttp.response);
+        }
+    }
+
+    // Send a request
+    xhttp.open(reqType, url + ((urlParams != null) ? "?" + _serialize(urlParams) : ""));
+    xhttp.send();
+}
+
+function pushToDB(type, action, payload) {
+    _sendHTTPRequest(
+        "POST", "/database", {
+        header: {
+            type: type,
+            action: action,
+            id: _myDatabaseID
+        },
+        payload: _serialize(payload)
+    });
+}
+
+function fetchFromDB(callback) {
+    return _sendHTTPRequest(
+        "GET", "/database",
+        {id: _myDatabaseID},
+        callback
+    )
+}
+
 function updateLabelsEverywhere() {
     TaskEditor.updateLabels();
     for(let list of allLists) {
         for(let task of list.tasks) {
-            task.createOrUpdateTable();
+            task.updateTable();
         }
     }
 }
@@ -40,52 +135,3 @@ function numericDateToInt(date) {
         parseInt(date[2])
     );
 }
-
-
-
-/*function getAllLabelsStrArray() {
-    let arr = [];
-    for(let i = 0; i < allLabels.length; i++) {
-        arr.push(allLabels[i].toString());
-    }
-    return arr;
-}*/
-
-/*function getReverseGreyscale(colour) {
-    return 255 * (1 - (colour[0] + colour[1] + colour[2]) / (255 + 255 + 255));
-}
-
-function getTextShadowOfColour(width, colour) {
-    return "text-shadow:" + 
-                "-" + width + "em -" + width + "em 0 " +  colour +
-                ", " + width + "em -" + width + "em 0 " +  colour +
-                ", -" + width + "em " + width + "em 0 " +  colour +
-                ", " + width + "em " + width + "em 0 " +  colour
-}
-
-// input: r,g,b in [0,1], out: h in [0,360) and s,v in [0,1]
-function rgb2hsv(r,g,b) {
-    let v=Math.max(r,g,b), c=v-Math.min(r,g,b);
-    let h= c && ((v==r) ? (g-b)/c : ((v==g) ? 2+(b-r)/c : 4+(r-g)/c)); 
-    return [60*(h<0?h+6:h), v&&c/v, v];
-}
-
-// input: h in [0,360] and s,v in [0,1] - output: r,g,b in [0,1]
-function hsv2rgb(h,s,v) {                              
-    let f= (n,k=(n+h/60)%6) => v - v*s*Math.max( Math.min(k,4-k,1), 0);     
-    return [f(5),f(3),f(1)];       
-}
-
-function hueInvert(c) {
-    let HSV = rgb2hsv(
-        1 - c[0] / 255,
-        1 - c[1] / 255,
-        1 - c[2] / 255
-    );
-    let oneBasedRGB = hsv2rgb(360 - HSV[0], 1 - HSV[1], HSV[2]);
-    let RGB = []
-    for(let c of oneBasedRGB) {
-        RGB.push(c * 255);
-    }
-    return RGB;
-}*/

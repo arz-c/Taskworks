@@ -12,14 +12,20 @@ class TaskEditor {
         form.appendChild(header);
         
         // Title
-        Form.addSpacedInputTo(form, "text", "title", "Title");
+        Form.addSpacedInputTo(form, "text", "title", "Title", true);
+
+        // Description
+        Form.addTextAreaTo(form, "description", "Description", 4, 48);
     
         // Labels (checkboxes)
         TaskEditor._addLabelInputTo(form, "checkbox", "labels", "Labels");
 
+        // Main (dropdown menu)
+        Form.addDropdownMenuTo(form, "mainLabel", "Main Label", []);
+
         // Doing Dates
-        Form.addSpacedInputTo(form, "date", "doingStart", "Start Doing Date");
-        Form.addSpacedInputTo(form, "date", "doingEnd", "End Doing Date");
+        Form.addSpacedInputTo(form, "date", "doingStart", "Start Date");
+        Form.addSpacedInputTo(form, "date", "doingEnd", "End Date");
 
         // Due Date
         Form.addSpacedInputTo(form, "date", "due", "Due Date");
@@ -27,6 +33,9 @@ class TaskEditor {
         // DOTW (checkboxes)
         Form.addListInputTo(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
     
+        // Frequency
+        Form.addSpacedInputTo(form, "text", "frequency", "Frequency (WIP)", true);
+
         // Priority (radio button)
         Form.addListInputTo(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
 
@@ -36,9 +45,9 @@ class TaskEditor {
         // Buttons
         form.appendChild(Form.createButton("Save", TaskEditor.save, "submit"));
         form.appendChild(Form.createButton("Cancel", TaskEditor.closeWindow, "submit secondary"));
-        Form.addHrTo(form);
-        form.appendChild(Form.createButton("Archive", TaskEditor.archiveTask, "submit"));
-        form.appendChild(Form.createButton("Delete", TaskEditor.deleteTask, "submit secondary"));
+        /*Form.addHrTo(form);
+        form.appendChild(Form.createButton("Archive", TaskEditor.archiveTask, "submit"));*/
+        form.appendChild(Form.createButton("Delete", TaskEditor.deleteTask, "submit"));
         
 
         // Heirarchy
@@ -57,21 +66,27 @@ class TaskEditor {
         }
         div.appendChild(Form.createLabel(name, formattedName, true));
         Form.addBrTo(div);
+        let labelListDiv = document.createElement("div");
+        labelListDiv.id = "labelListDiv";
         for(let i = 0; i < allLabels.length; i++) {
             let l = allLabels[i];
-            div.appendChild(Form.createInputElement(type, name, i, defaultIndicies.includes(i) ? true : null));
-            div.appendChild(Form.createLabel(name, l.toString()));
-            div.appendChild(Form.createButton("📜", function() {
+            let innerDiv = document.createElement("div");
+            innerDiv.className = "editLabelContainer";
+            innerDiv.appendChild(Form.createInputElement(type, name, i, defaultIndicies.includes(i) ? true : null));
+            innerDiv.appendChild(Form.createLabel(name, l.toString()));
+            innerDiv.appendChild(Form.createButton("📜", function() {
                 LabelEditor.openWindow(l);
             }, "editLabel"));
+            labelListDiv.appendChild(innerDiv);
         }
-        div.appendChild(Form.createButton("➕", function() {
+        labelListDiv.appendChild(Form.createButton("➕", function() {
             let label = new Label();
             allLabels.push(label);
+            pushToDB("labels", "add", {object: label.objectify()});
             TaskEditor.updateLabels();
             LabelEditor.openWindow(label);
         }, "editLabel"));
-        Form.addBrTo(div);
+        div.appendChild(labelListDiv);
         Form.addBrTo(div);
         if(toAppend)
             form.appendChild(div);
@@ -114,19 +129,33 @@ class TaskEditor {
                     else
                         c.value = task[c.name];
                 }
-            } else if(c.id == "labelsDiv") { // label div
-                for(let l of c.children) { // label
-                    if(l.tagName == "INPUT") {
-                        let searchVal = parseInt(l.value);
-                        let found = false;
-                        for(let infoL of task.labelIndices) {
-                            if(infoL == searchVal) {
-                                found = true;
-                                break;
+            } else if(c.id == "labelsDiv") { // labels
+                for(let cc of c.children) { 
+                    if(cc.id == "labelListDiv") { // looking for labelListDiv
+                        for(let d of cc.children) { 
+                            for(let l of d.children) { // going thru editLabelContainer divs
+                                if(l.tagName == "INPUT") {
+                                    let searchVal = parseInt(l.value);
+                                    let found = false;
+                                    for(let infoL of task.labelIndices) {
+                                        if(infoL == searchVal) {
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+                                    l.checked = found;
+                                }
                             }
                         }
-                        l.checked = found;
                     }
+                }
+            } else if(c.tagName == "TEXTAREA") { // description
+                c.value = task[c.name];
+            } else if (c.tagName == "SELECT") { // main label
+                c.innerHTML = ""; // clear any previous labels
+                for(let i = 0; i < TaskEditor.selectedTask.labelIndices.length; i++) {
+                    let labelIndex = TaskEditor.selectedTask.labelIndices[i];
+                    Form.addOptionToDropdownMenu(c, i, allLabels[labelIndex].title, (i == task.mainLabel));
                 }
             }
         }
@@ -142,7 +171,7 @@ class TaskEditor {
             if(c.tagName == "INPUT") {
                 if(!(c.name in formData)) { // adding key to dict
                     switch(c.type) {
-                        case "text": // title
+                        case "text": // title & frequency
                         case "date": // all dates
                             formData[c.name] = "";
                             break;
@@ -176,19 +205,28 @@ class TaskEditor {
                         break;
     
                 }
-            } else if(c.id == "labelsDiv") { // label div
+            } else if(c.id == "labelsDiv") { // labels
                 if(!("labelIndices" in formData)) // adding key to dict
                     formData["labelIndices"] = [];
-                
-                for(let l of c.children) { // label
-                    if(l.tagName == "INPUT" && l.checked) {
-                        formData["labelIndices"].push(parseInt(l.value));
+                for(let cc of c.children) { 
+                    if(cc.id == "labelListDiv") { // looking for labelListDiv
+                        for(let d of cc.children) { 
+                            for(let l of d.children) { // going thru editLabelContainer divs
+                                if(l.tagName == "INPUT" && l.checked) {
+                                    formData["labelIndices"].push(parseInt(l.value));
+                                }
+                            }
+                        }
                     }
                 }
+            } else if(c.tagName == "TEXTAREA") { // description & main label
+                formData[c.name] = c.value;
+            } else if(c.tagName == "SELECT") {
+                formData[c.name] = parseInt(c.value); // to int because storing label index
             }
         }
         TaskEditor.selectedTask.updateInfo(formData);
-        TaskEditor.selectedTask.createOrUpdateTable();
+        TaskEditor.selectedTask.updateTable();
         TaskEditor.closeWindow();
     }
 

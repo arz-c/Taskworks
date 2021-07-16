@@ -1,6 +1,6 @@
 class Form {
     static init() {
-        Form.container = document.getElementById("uiContainer");
+        Form.container = document.getElementById("editorContainer");
     }
 
     static createFormUsingExistingID(id) {
@@ -12,6 +12,11 @@ class Form {
         return [div, form];
     }
 
+    static shiftToLeftmostPos(uiStaticClass) {
+        uiStaticClass.div.remove();
+        Form.container.insertBefore(uiStaticClass.div, Form.container.firstChild);
+    }
+    
     static addBrTo(parent) {
         parent.appendChild(document.createElement("br"));
     }
@@ -88,16 +93,47 @@ class Form {
         Form.addBrTo(parent);
     }
 
-    static addSpacedInputTo(parent, type, name, formattedName) {
+    static addSpacedInputTo(parent, type, name, formattedName, onlyOneSpaceAfter = false) {
         parent.appendChild(Form.createLabel(name, formattedName, true))
         Form.addBrTo(parent);
         parent.appendChild(Form.createInputElement(type, name, null));
         Form.addBrTo(parent);
+        if(!onlyOneSpaceAfter) Form.addBrTo(parent);
+    }
+
+    static addTextAreaTo(parent, name, formattedName, rows, cols) {
+        parent.appendChild(Form.createLabel(name, formattedName, true))
+        Form.addBrTo(parent);
+        let textArea = document.createElement("textarea");
+        textArea.name = name;
+        textArea.setAttribute("rows", rows);
+        textArea.setAttribute("cols", cols);
+        parent.appendChild(textArea);
+        Form.addBrTo(parent);
         Form.addBrTo(parent);
     }
-    
-    static shiftToLeftmostPos(uiStaticClass) {
-        uiStaticClass.div.remove();
-        Form.container.insertBefore(uiStaticClass.div, Form.container.firstChild);
+
+    static addDropdownMenuTo(parent, name, formattedName, content) {
+        parent.appendChild(Form.createLabel(name, formattedName, true))
+        Form.addBrTo(parent);
+        let select = document.createElement("select");
+        select.name = name;
+        for(const val of content) {
+            var option = document.createElement("option");
+            option.value = val;
+            option.text = val;
+            select.appendChild(option);
+        }
+        parent.appendChild(select);
+        Form.addBrTo(parent);
+        Form.addBrTo(parent);
+    }
+
+    static addOptionToDropdownMenu(dropdownMenu, name, formattedName, selected) {
+        let option = document.createElement("option");
+        option.value = name;
+        option.text = formattedName;
+        if(selected) option.selected = true;
+        dropdownMenu.appendChild(option);
     }
 }
