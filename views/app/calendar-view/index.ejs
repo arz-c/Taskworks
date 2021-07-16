@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskworks</title>
+    <link rel="stylesheet" href="/code/calendar-view/css/style.css">
+    <link rel="shortcut icon" href="/favicon.ico?v=1.1">
+</head>
+<body>
+    <h1 id="welcome"><%=username.charAt(0).toUpperCase() + username.slice(1)%>'s Schedule - Calendar View</h1>
+    <div id="databaseID" style="display: none;"><%=id%></div> <!-- saving my user ID as given by server -->
+    <div id="uiContainer">
+        <a href="/app/list-view" id="viewLink">List</a>
+        <form action="/logout?_method=DELETE" method="POST">
+            <button type="submit" id="logOut">Log Out</button>
+        </form>
+    </div>
+    <div id="calendarContainer">
+        <div class="calendarBackground">
+            <h1 id="monthHeader"></h1>
+        </div>
+        <div class="calendarBackground">
+            <table id="calendarTable"></table>
+        </div>
+    </div>
+    <div id="modal">
+        <div id="modalContent">
+            <span id="close">&times;</span>
+            <p id="modalText">Some text in the Modal..</p>
+        </div>
+    </div>
+    <script src="/code/calendar-view/js/global.js"></script>
+    <script src="/code/calendar-view/js/Label.js"></script>
+    <script src="/code/calendar-view/js/Task.js"></script>
+    <script src="/code/calendar-view/js/List.js"></script>
+    <script src="/code/calendar-view/js/Day.js"></script>
+    <script src="/code/calendar-view/js/Form.js"></script>
+    <script src="/code/calendar-view/js/main.js"></script>
+</body>
+</html>

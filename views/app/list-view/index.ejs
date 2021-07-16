@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskworks</title>
+    <link rel="stylesheet" href="/code/list-view/css/style.css">
+    <link rel="shortcut icon" href="/favicon.ico?v=1.1"> <!-- ?v=1.1 is to force the browser to refresh cache (causes issues otherwise) -->
+</head>
+<body>
+    <h1 id="welcome"><%=username.charAt(0).toUpperCase() + username.slice(1)%>'s Schedule - List View</h1>
+    <div id="databaseID" style="display: none;"><%=id%></div> <!-- saving my user ID as given by server -->
+    <div id="uiContainer">
+        <a href="/app/calendar-view" id="viewLink">Calendar</a>
+        <form action="/logout?_method=DELETE" method="POST">
+            <button type="submit" id="logOut">Log Out</button>
+        </form>
+    </div>
+    <button id="newListButton" onclick="createList()">Create new list</button>
+    <div id="editorContainer">
+        <form id="listEditorForm" onsubmit="return false"></form>
+        <form id="labelEditorForm" onsubmit="return false"></form>
+        <form id="taskEditorForm" onsubmit="return false"></form>
+    </div>
+    <script src="/code/list-view/js/global.js"></script>
+    <script src="/code/list-view/js/Label.js"></script>
+    <script src="/code/list-view/js/Task.js"></script>
+    <script src="/code/list-view/js/List.js"></script>
+    <script src="/code/list-view/js/Form.js"></script>
+    <script src="/code/list-view/js/ListEditor.js"></script>
+    <script src="/code/list-view/js/LabelEditor.js"></script>
+    <script src="/code/list-view/js/TaskEditor.js"></script>
+    <script src="/code/list-view/js/main.js"></script>
+</body>
+</html>
