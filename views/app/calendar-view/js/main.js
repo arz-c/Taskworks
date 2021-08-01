@@ -265,19 +265,19 @@ function setupCalendar(monthOffset = 0) {
 
 let curMonthOffset = 0;
 
-document.getElementById("prevMonthBtn").onclick = function() {
-    if(new Date().getMonth() - curMonthOffset - 1 >= 0) {
-        curMonthOffset--;
+function changeMonthBtnOnclick(increment) {
+    if(new Date().getMonth() + curMonthOffset + increment >= 0) {
+        curMonthOffset += increment;
         setupCalendar(curMonthOffset);
     } else
         openModal("Cannot change years");
 }
 
+document.getElementById("prevMonthBtn").onclick = function() {
+    changeMonthBtnOnclick(-1);
+}
+
 document.getElementById("nextMonthBtn").onclick = function() {
-    if(new Date().getMonth() + curMonthOffset + 1 <= 11) {
-        curMonthOffset++;
-        setupCalendar(curMonthOffset);
-    } else
-        openModal("Cannot change years");
+    changeMonthBtnOnclick(1);
 }
 
