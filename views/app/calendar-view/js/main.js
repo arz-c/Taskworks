@@ -149,15 +149,13 @@ function setupCalendar(monthOffset = 0) {
 
     // STYLIZING
 
-    if(monthOffset == 0) { // only needed if month is cur month
-         // Setting today
-        let todayI = new Date().getDate() + visibleDaysInPrevMonth - 1;
+    let todayI;
+    if(monthOffset < 0) { // viewing past month
+        todayI = days.length;
+    } else if(monthOffset == 0) { // viewing current month -- need to set "Today" date in this case
+        // Setting today
+        todayI = new Date().getDate() + visibleDaysInPrevMonth - 1;
         days[todayI].setToToday();
-
-        // Setting past days to overdue
-        for(let i = 0; i < todayI; i++) {
-            days[i].setToOverdue();
-        }
 
         // Setting timeout for next today
         let today = new Date();
@@ -184,8 +182,14 @@ function setupCalendar(monthOffset = 0) {
             console.log("New day has been set");
         }
         setTimeout(_setTodayTimeout.bind(this), timeUntilTmrw + 500); // +500 to ensure day has changed in JS's Day object
+    } else if(monthOffset > 0) { // viewing future month
+        todayI == -1;
     }
-   
+
+    // Setting past days to overdue
+    for(let i = 0; i < todayI; i++) {
+        days[i].setToOverdue();
+    }
 
     // ADDING TASKS TO CALENDAR
 
