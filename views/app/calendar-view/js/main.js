@@ -65,7 +65,7 @@ function getAllCSSVars() {
         );
 }*/
 
-function setupCalendar() {
+function setupCalendar(monthOffset = 0) {
     function _getDaysInMonth(dateObj) {
         // month + 1 because Date constructor is 1-based while Date.getMonth is 0-based
         // - 1 at the end because our Day class is 0-based while Date.getDate is 1 based
@@ -82,10 +82,11 @@ function setupCalendar() {
 
     let days = [];
     let table = document.getElementById("calendarTable");
+    table.innerHTML = ""; // erase any existing data (only useful when user switches between months)
 
     // Creating month objects for prev, cur, and next months
     let curMonthObj = new Date();
-    curMonthObj.setMonth(curMonthObj.getMonth() - 0); // change 0 to something else to test
+    curMonthObj.setMonth(curMonthObj.getMonth() + monthOffset);
     curMonthObj.setDate(1);
     let dotw = curMonthObj.getDay();
     let year = curMonthObj.getYear();
@@ -127,7 +128,7 @@ function setupCalendar() {
     }
 
     // Creating current month section
-    let dayOffset = 7 - visibleDaysInPrevMonth; // if a previous month section was created, an offset is now present
+    let dayOffset = (visibleDaysInPrevMonth == 0) ? 0 : 7 - visibleDaysInPrevMonth; // if a previous month section was created, an offset is now present
     let numWeeks = (dayOffset == 0) ? 5 : 4; // if a previous month section was created, 1 less week is needed
     for(let i = 0; i < numWeeks; i++) {
         let row = table.insertRow();
@@ -137,7 +138,7 @@ function setupCalendar() {
                 _createDayCellAt(row, year, month, dateNum, false);
             } else {
                 // Creating next month section once the date number exceeds the total number of days in current month
-                visibleDaysInNextMonth = 7 - j - 1; // - 1 since 'i' goes from 0 - 6 instead of 1 - 7
+                visibleDaysInNextMonth = 7 - j; // - 1 since 'i' goes from 0 - 6 instead of 1 - 7
                 for(let k = 0; k < 7 - j; k++) {
                     _createDayCellAt(row, year, nextMonth, k, true);
                 }
@@ -148,37 +149,43 @@ function setupCalendar() {
 
     // STYLIZING
 
-    // Setting today
-    let todayI = new Date().getDate() + dayOffset;
-    days[todayI].setToToday();
+    if(monthOffset == 0) { // only needed if month is cur month
+         // Setting today
+        let todayI = new Date().getDate() + visibleDaysInPrevMonth - 1;
+        days[todayI].setToToday();
 
-    // Setting past days to overdue
-    for(let i = 0; i < todayI; i++) {
-        days[i].setToOverdue();
-    }
+        // Setting past days to overdue
+        for(let i = 0; i < todayI; i++) {
+            days[i].setToOverdue();
+        }
 
-    // Setting timeout for next today
-    let today = new Date();
-    let tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setDateObjToDayStart(tomorrow);
-    let timeUntilTmrw = tomorrow.getTime() - today.getTime();
-    console.log(
-        `New day will be set in ` +
-        `${Math.floor(timeUntilTmrw / 1000 / 60 / 60)} hours and ` +
-        `${Math.floor(timeUntilTmrw / 1000 / 60 % 60)} minutes`
-    );
-
-    function _setTodayTimeout() {
+        // Setting timeout for next today
         let today = new Date();
-        let yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        days[yesterday.getDate() + dayOffset + 1].removeAsToday();
-        days[today.getDate() + dayOffset + 1].setToToday();
-        setTimeout(_setTodayTimeout.bind(this), 24 * 60 * 60 * 1000); // fresh day is garunteed here
-        console.log("New day has been set");
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        setDateObjToDayStart(tomorrow);
+        let timeUntilTmrw = tomorrow.getTime() - today.getTime();
+        console.log(
+            `New day will be set in ` +
+            `${Math.floor(timeUntilTmrw / 1000 / 60 / 60)} hours and ` +
+            `${Math.floor(timeUntilTmrw / 1000 / 60 % 60)} minutes`
+        );
+
+        function _setTodayTimeout() {
+            let today = new Date();
+            let yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if(yesterday.getMonth() == today.getMonth()) { // if months are different, indicates new month
+                days[yesterday.getDate() + visibleDaysInPrevMonth - 1].removeAsToday();
+                days[today.getDate() + visibleDaysInPrevMonth - 1].setToToday();
+            }
+            console.log(yesterday.getDate() + dayOffset - 1, today.getDate() + dayOffset - 1)
+            setTimeout(_setTodayTimeout.bind(this), 24 * 60 * 60 * 1000 + 500); // fresh day is garunteed here; +500 to ensure day has changed in JS's Day object
+            console.log("New day has been set");
+        }
+        setTimeout(_setTodayTimeout.bind(this), timeUntilTmrw + 500); // +500 to ensure day has changed in JS's Day object
     }
-    setTimeout(_setTodayTimeout.bind(this), timeUntilTmrw);
+   
 
     // ADDING TASKS TO CALENDAR
 
@@ -222,11 +229,7 @@ function setupCalendar() {
         let taskStartMonth = taskStart.getMonth();
         let taskEnd = new Date(t.doingEnd);
         let taskEndMonth = taskEnd.getMonth();
-
         if(_isDateRangeOverlap(taskStart, taskEnd, calendarStart, calendarEnd)) { // if the task's start and end overlap with calendar's start and end
-            /*let startDate = (startMonth == month) ? start.getDate() : 0;
-            let endDate = (endMonth == month) ? end.getDate() : daysInMonth;*/
-
             let taskStartDate;
             let taskStartAbsoluteDate = taskStart.getDate();
             if(taskStartMonth == month) // if same months
@@ -234,7 +237,7 @@ function setupCalendar() {
             else if(taskStartMonth == prevMonth && taskStartAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth)) // if part of the visible prev month
                 taskStartDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskStartAbsoluteDate); // set date to whatever the date is (in the prev month)
             else if(taskStartMonth == nextMonth && taskStartAbsoluteDate <= visibleDaysInPrevMonth) // if part of the visible next month
-                taskStartDate = taskStartAbsoluteDate; // set date to whatever the date is (in the next month)
+                taskStartDate = visibleDaysInPrevMonth + daysInMonth + taskStartAbsoluteDate; // set date to whatever the date is (in the next month)
             else if(taskStartMonth < month) // if it starts any earlier
                 taskStartDate = 0; // start from first day in calendar (including prev month if applicable)
 
@@ -243,17 +246,34 @@ function setupCalendar() {
             if(taskEndMonth == month)
                 taskEndDate = taskEndAbsoluteDate + visibleDaysInPrevMonth;
             else if(taskEndMonth == nextMonth && taskEndAbsoluteDate <= visibleDaysInNextMonth)
-                taskEndDate = taskEndAbsoluteDate;
+                taskEndDate = visibleDaysInPrevMonth + daysInMonth + taskEndAbsoluteDate;
             else if(taskEndMonth == prevMonth && taskEndAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth))
                 taskEndDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskEndAbsoluteDate);
             else if(taskEndMonth > month)
                 taskEndDate = visibleDaysInPrevMonth + daysInMonth + visibleDaysInNextMonth;
-            
             for(let i = taskStartDate; i <= taskEndDate; i++) {
-
                 if(t.dotw[i % 7] && t.active) // dotw and active check
                     days[i].addTask(t);
             }
         }
     }
 }
+
+let curMonthOffset = 0;
+
+document.getElementById("prevMonthBtn").onclick = function() {
+    if(new Date().getMonth() - curMonthOffset - 1 >= 0) {
+        curMonthOffset--;
+        setupCalendar(curMonthOffset);
+    } else
+        openModal("Cannot change years");
+}
+
+document.getElementById("nextMonthBtn").onclick = function() {
+    if(new Date().getMonth() + curMonthOffset + 1 <= 11) {
+        curMonthOffset++;
+        setupCalendar(curMonthOffset);
+    } else
+        openModal("Cannot change years");
+}
+

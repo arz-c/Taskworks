@@ -102,13 +102,33 @@ hr {
 .calendarBackground {
     background-color: black;
     width: 100%;
+    text-align: center;
 }
 
 #monthHeader {
+    display: inline-block;
     color: var(--secondary-colour);
-    text-align: center;
     margin-top: 0.1em;
     margin-bottom: 0.2em;
+}
+
+#prevMonthBtn, #nextMonthBtn {
+    background: transparent;
+    color: var(--secondary-colour);
+    font-size: 2em;
+}
+
+#prevMonthBtn:hover, #nextMonthBtn:hover {
+    background: var(--contrast-colour);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.8) 0 0);
+}
+
+#prevMonthBtn {
+    float: left;
+}
+
+#nextMonthBtn {
+    float: right;
 }
 
 #calendarTable {
