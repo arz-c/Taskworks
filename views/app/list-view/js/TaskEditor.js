@@ -5,6 +5,21 @@ class TaskEditor {
         
         TaskEditor.div = div;
         TaskEditor.form = form;
+
+        function _optionalOnclick() {
+            let nextInput = false;
+            for(let c of TaskEditor.form.children) {
+                if(c == this.parentElement) {
+                    nextInput = true;
+                } else if(nextInput && c.tagName == "INPUT") {
+                    nextInput = false;
+                    if(!this.checked)
+                        c.style = "display: none";
+                    else
+                        c.style = "";
+                }
+            } 
+        }
         
         // Form Header
         let header = document.createElement("h1")
@@ -12,7 +27,7 @@ class TaskEditor {
         form.appendChild(header);
         
         // Title
-        Form.addSpacedInputTo(form, "text", "title", "Title", true);
+        Form.addSpacedInputTo(form, "text", "title", "Title", false, true);
 
         // Description
         Form.addTextAreaTo(form, "description", "Description", 4, 48);
@@ -24,29 +39,27 @@ class TaskEditor {
         Form.addDropdownMenuTo(form, "mainLabel", "Main Label", []);
 
         // Doing Dates
-        Form.addSpacedInputTo(form, "date", "doingStart", "Start Date");
-        Form.addSpacedInputTo(form, "date", "doingEnd", "End Date");
+        Form.addSpacedInputTo(form, "date", "doingStart", "Start Date", false);
+        Form.addSpacedInputTo(form, "date", "doingEnd", "End Date", _optionalOnclick);
 
         // Due Date
-        Form.addSpacedInputTo(form, "date", "due", "Due Date");
+        Form.addSpacedInputTo(form, "date", "due", "Due Date", _optionalOnclick);
     
         // DOTW (checkboxes)
         Form.addListInputTo(form, "checkbox", DAY_STRINGS, "dotw", "Days of the Week", [0, 1, 2, 3, 4, 5, 6]);
     
-        // Frequency
-        Form.addSpacedInputTo(form, "text", "frequency", "Frequency (WIP)", true);
+        /*// Frequency
+        Form.addSpacedInputTo(form, "text", "frequency", "Frequency (WIP)", true, true);*/
 
         // Priority (radio button)
         Form.addListInputTo(form, "radio", ["Low", "Medium", "High"], "priority", "Priority", [0]);
 
         // Active
-        Form.addSpacedInputTo(form, "checkbox", "active", "Active");
+        Form.addSpacedInputTo(form, "checkbox", "active", "Active", false);
     
         // Buttons
         form.appendChild(Form.createButton("Save", TaskEditor.save, "submit"));
         form.appendChild(Form.createButton("Cancel", TaskEditor.closeWindow, "submit secondary"));
-        /*Form.addHrTo(form);
-        form.appendChild(Form.createButton("Archive", TaskEditor.archiveTask, "submit"));*/
         form.appendChild(Form.createButton("Delete", TaskEditor.deleteTask, "submit"));
         
 
@@ -114,20 +127,31 @@ class TaskEditor {
         
         let dotwI = 0;
         let prioI = 0;
+
+        let curOptionalCheckbox = null;
+
         for(let c of TaskEditor.form.children) {
             if(c.tagName == "INPUT") {
+                if(curOptionalCheckbox != null) {
+                    curOptionalCheckbox.checked = task.optionals[c.name];
+                    if(!curOptionalCheckbox.checked)
+                        c.style = "display: none";
+                    else
+                        c.style = "";
+                    curOptionalCheckbox = null;
+                }
+
                 if(c.name == "priority") {
                     if(task.priority == prioI) 
-                            c.checked = true;
-                        prioI++;
+                        c.checked = true;
+                    prioI++;
                 } else if(c.name == "dotw") {
                     c.checked = task.dotw[dotwI];
                     dotwI++;
+                } else if(c.type == "checkbox") {
+                    c.checked = task[c.name];
                 } else {
-                    if(c.type == "checkbox")
-                        c.checked = task[c.name];
-                    else
-                        c.value = task[c.name];
+                    c.value = task[c.name];
                 }
             } else if(c.id == "labelsDiv") { // labels
                 for(let cc of c.children) { 
@@ -157,6 +181,12 @@ class TaskEditor {
                     let labelIndex = TaskEditor.selectedTask.labelIndices[i];
                     Form.addOptionToDropdownMenu(c, i, allLabels[labelIndex].title, (i == task.mainLabel));
                 }
+            } else if(c.className == "optionalDiv") {
+                for(let cc of c.children) {
+                    if(cc.name == "optional") {
+                        curOptionalCheckbox = cc;
+                    }
+                }
             }
         }
     }
@@ -167,8 +197,17 @@ class TaskEditor {
 
     static save() {
         let formData = {};
+
+        let curOptionalCheckbox = null;
+        formData["optionals"] = {};
+
         for(let c of TaskEditor.form.children) {
             if(c.tagName == "INPUT") {
+                if(curOptionalCheckbox != null) {
+                    formData["optionals"][c.name] = curOptionalCheckbox.checked;
+                    curOptionalCheckbox = null
+                }
+
                 if(!(c.name in formData)) { // adding key to dict
                     switch(c.type) {
                         case "text": // title & frequency
@@ -223,16 +262,16 @@ class TaskEditor {
                 formData[c.name] = c.value;
             } else if(c.tagName == "SELECT") {
                 formData[c.name] = parseInt(c.value); // to int because storing label index
+            } else if(c.className == "optionalDiv") {
+                for(let cc of c.children) {
+                    if(cc.name == "optional") {
+                        curOptionalCheckbox = cc;
+                    }
+                }
             }
         }
         TaskEditor.selectedTask.updateInfo(formData);
         TaskEditor.selectedTask.updateTable();
-        TaskEditor.closeWindow();
-    }
-
-    static archiveTask() {
-        if(!confirm("Do you want to archive this task?")) return;
-        TaskEditor.selectedTask.archive();
         TaskEditor.closeWindow();
     }
 

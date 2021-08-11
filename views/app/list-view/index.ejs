@@ -17,9 +17,14 @@
             <button type="submit" id="logOut">Log Out</button>
         </form>
     </div>
-    <button id="newListButton" onclick="createList()">Create new list</button>
+    <div id="listConfigDiv">
+        <button onclick="createList()">Create new list</button>
+        <br>
+        <button onclick="editCheckedLists()">Edit checked lists</button>
+    </div>
     <div id="editorContainer">
         <form id="listEditorForm" onsubmit="return false"></form>
+        <form id="checkedListsEditorForm" onsubmit="return false"></form>
         <form id="labelEditorForm" onsubmit="return false"></form>
         <form id="taskEditorForm" onsubmit="return false"></form>
     </div>
@@ -29,6 +34,7 @@
     <script src="/code/list-view/js/List.js"></script>
     <script src="/code/list-view/js/Form.js"></script>
     <script src="/code/list-view/js/ListEditor.js"></script>
+    <script src="/code/list-view/js/CheckedListsEditor.js"></script>
     <script src="/code/list-view/js/LabelEditor.js"></script>
     <script src="/code/list-view/js/TaskEditor.js"></script>
     <script src="/code/list-view/js/main.js"></script>

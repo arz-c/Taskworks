@@ -1,90 +1,119 @@
 class List {
     constructor(data = {}) {
         this.title = data.title || "New list";
+        this.checked = (data.checked != undefined) ? data.checked == "true" : false;
         this.tasks = []; // if tasks were in the "data" parameter, they are added to this list at the bottom of the constructor (so the HTML table is ready for tasks to be added to)
 
         // TABLE
         this.elements = []; // this will only be in "data" when fetched from database
-        if(!data.archived) { // only want to show the table is not archived
-            // Creating the list table
-            let table = document.createElement("table");
-            table.className = "list";
-            this.elements.table = table
-            
-            // Creating the title text (in the form of a button)
-            let thead = table.createTHead();
-            let titleButton = Form.createButton(this.title, function() {
-                ListEditor.openWindow(this)
-            }.bind(this), "title");
-            thead.appendChild(titleButton);
-            this.elements.titleButton = titleButton;
-            
-            // Moving new list button
-            let newListButton = document.getElementById("newListButton")
-            document.body.insertBefore(table, newListButton);
+        // Creating the list table
+        let table = document.createElement("table");
+        table.className = "list";
+        this.elements.table = table
+        
+        // Creating the title text (in the form of a button)
+        let thead = table.createTHead();
+        let titleButton = Form.createButton(this.title, function() {
+            ListEditor.openWindow(this)
+        }.bind(this), "title");
+        thead.appendChild(titleButton);
+        this.elements.titleButton = titleButton;
 
-            // Creating the "Create new task" button
-            const _newTaskBtnOnclick = function() {
-                let newTask = new Task();
-                TaskEditor.openWindow(newTask)
-                this.addTask(newTask);
-                pushToDB("lists", "edit", {index: allLists.indexOf(this), object: this.objectify()}); // since list holds task data, updating list in database
+        // Creating the "Create new task" button
+        const _newTaskBtnOnclick = function() {
+            let newTask = new Task();
+            TaskEditor.openWindow(newTask)
+            this.addTask(newTask);
+            pushToDB("lists", "edit", {index: allLists.indexOf(this), object: this.objectify()}); // since list holds task data, updating list in database
+        }
+
+        let newTaskBtn = Form.createButton("Create new task", _newTaskBtnOnclick.bind(this));
+        let newTaskRow = table.insertRow();
+        newTaskRow.className = "newTaskRow";
+        let newTaskTd = document.createElement("td");
+
+        newTaskTd.appendChild(newTaskBtn)
+        newTaskRow.appendChild(newTaskTd)
+        table.appendChild(newTaskRow);
+
+        // Creating the "Show checked" button & table
+        const _showCheckedBtnOnclick = function() {
+            if(this.innerHTML == "Hide checked") {
+                this.checkedTable.style = "display: hidden";
+                this.innerHTML = "Show checked";
+            } else {
+                this.checkedTable.style = "display: initial";  
+                this.innerHTML = "Hide checked";
             }
+        }
 
-            let newTaskBtn = Form.createButton("Create new task", _newTaskBtnOnclick.bind(this));
-            let newTaskRow = table.insertRow();
-            newTaskRow.className = "newTaskRow";
-            let newTaskTd = document.createElement("td");
+        let checkedTable = document.createElement("table");
+        let showCheckedBtn = Form.createButton("Show checked", _showCheckedBtnOnclick);
+        let showCheckedRow = table.insertRow();
+        showCheckedRow.className = "showCheckedRow";
+        let showCheckedTd = document.createElement("td");
+        showCheckedBtn.checkedTable = checkedTable;
+        checkedTable.className = "checkedTable";
 
-            newTaskTd.appendChild(newTaskBtn)
-            newTaskRow.appendChild(newTaskTd)
-            table.appendChild(newTaskRow);
+        this.elements.checkedTable = checkedTable;
+        showCheckedTd.appendChild(showCheckedBtn);
+        showCheckedRow.appendChild(showCheckedTd);
+        table.appendChild(checkedTable);
 
-            // Creating the "Show checked" button & table
-            const _showCheckedBtnOnclick = function() {
-                if(this.innerHTML == "Hide checked") {
-                    this.checkedTable.style = "display: hidden";
-                    this.innerHTML = "Show checked";
-                } else {
-                    this.checkedTable.style = "display: initial";  
-                    this.innerHTML = "Hide checked";
-                }
-            }
+        // Inserting table before new list button
+        document.body.insertBefore(table, document.getElementById("listConfigDiv")); // insert to rightmost pos
 
-            let checkedTable = document.createElement("table");
-            let showCheckedBtn = Form.createButton("Show checked", _showCheckedBtnOnclick);
-            let showCheckedRow = table.insertRow();
-            showCheckedRow.className = "showCheckedRow";
-            let showCheckedTd = document.createElement("td");
-            showCheckedBtn.checkedTable = checkedTable;
-            checkedTable.className = "checkedTable";
+        if(this.checked) { // only want to show the table is not checked
+            this.hideTable();
+        }
 
-            this.elements.checkedTable = checkedTable;
-            showCheckedTd.appendChild(showCheckedBtn);
-            showCheckedRow.appendChild(showCheckedTd);
-            table.appendChild(checkedTable);
-
-            // if tasks were already in the database, create tasks using info provided by the DB and add them to this list
-            if(data.tasks != undefined) {
-                for(let i = 0; i < data.tasks.length; i++) {
-                    this.addTask(new Task(data.tasks[i])); 
-                }
-            }
-        } else if(data.tasks != undefined) {
-            // create archived tasks using info provided by the DB, and don't add them to the list because the list is archived, therefore not visible
+        // if tasks were already in the database, create tasks using info provided by the DB and add them to this list
+        if(data.tasks != undefined) {
             for(let i = 0; i < data.tasks.length; i++) {
-                let d = data.tasks[i];
-                d.archived = true;
-                this.tasks.push(new Task(d));
+                this.addTask(new Task(data.tasks[i])); 
             }
         }
     }
 
     objectify() {
+        let tasks = [];
+        for(let t of this.tasks) {
+            tasks.push(t.objectify());
+        }
         return {
             title: this.title,
-            tasks: this.tasks,
+            checked: this.checked,
+            tasks: tasks
         }
+    }
+
+    updateInfo(data) {
+        this.title = data.title;
+        this.checked = data.checked;
+        if(data.checked) this.hideTable();
+        pushToDB("lists", "edit", {index: allLists.indexOf(this), object: this.objectify()});
+    }
+
+    showTable() {
+        // moving HTML table
+        let table = this.elements.table;
+        table.remove(); // if it already exists, remove it first
+        document.body.insertBefore(table, document.getElementById("listConfigDiv")); // insert to rightmost pos
+
+        // moving list element in allLists
+        //let oldI = allLists.indexOf(this);
+        allLists.splice(allLists.indexOf(this), 1); // remove first
+        allLists.push(this); // add to end
+        //let newI = allLists.length - 1;
+
+        // saving
+        for(let i = 0; i < allLists.length; i++) {
+            pushToDB("lists", "edit", {index: i, object: allLists[i]});  
+        }
+    }
+
+    hideTable() {
+        this.elements.table.remove();
     }
 
     _insertTaskToCorrectPos(task, exists = false) {
@@ -162,25 +191,9 @@ class List {
         this.tasks.splice(this.tasks.indexOf(task), 1);
     }
 
-    updateInfo(data) {
-        this.title = data.title;
-        pushToDB("lists", "edit", {index: allLists.indexOf(this), object: this.objectify()});
-    }
-
     updateTable() {
         this.elements.titleButton.innerHTML = this.title; // update title
         updateLabelsEverywhere();
-    }
-
-    archive() {
-        for(let i = this.tasks.length - 1; i >= 0; i--) // this is done backwards because elements are being dynamically removed from this.tasks
-            this.tasks[i].archive();
-        this.elements.table.remove();
-        archivedLists.push(this);
-        let allListsIndex = allLists.indexOf(this);
-        pushToDB("archivedLists", "add", {object: this.objectify()});
-        pushToDB("lists", "remove", {index: allListsIndex});
-        allLists.splice(allListsIndex, 1);
     }
 
     delete() {

@@ -12,33 +12,19 @@ class ListEditor {
         form.appendChild(header);
         
         // Title
-        Form.addSpacedInputTo(form, "text", "title", "Title");
+        Form.addSpacedInputTo(form, "text", "title", "Title", false, true);
+
+        // Checked
+        Form.addSpacedInputTo(form, "checkbox", "checked", "Checked", false);
         
         // Buttons
         form.appendChild(Form.createButton("Save", ListEditor.save, "submit"));
         form.appendChild(Form.createButton("Cancel", ListEditor.closeWindow, "submit secondary"));
-        /*Form.addHrTo(form);
-        form.appendChild(Form.createButton("Archive", ListEditor.archiveList, "submit"));*/
         form.appendChild(Form.createButton("Delete", ListEditor.deleteList, "submit"));
     
         // Heirarchy
         div.appendChild(form);
         Form.container.appendChild(div);
-    }
-
-    static save() {
-        let formData = {};
-        for(let c of ListEditor.form.children) {
-            if(c.tagName == "INPUT")
-                switch(c.name) {
-                    case "title":
-                        formData.title = c.value;
-                        break;
-                }
-        }
-        ListEditor.selectedList.updateInfo(formData);
-        ListEditor.selectedList.updateTable();
-        ListEditor.closeWindow();
     }
 
     static openWindow(list) {
@@ -51,19 +37,34 @@ class ListEditor {
                     case "title":
                         c.value = list.title;
                         break;
+                    case "checked":
+                        c.checked = list.checked;
+                        break;
                 }
             }
         }
     }
 
-    static closeWindow() {
-        ListEditor.div.style.display = "none";
+    static save() {
+        let formData = {};
+        for(let c of ListEditor.form.children) {
+            if(c.tagName == "INPUT")
+                switch(c.name) {
+                    case "title":
+                        formData.title = c.value;
+                        break;
+                    case "checked":
+                        formData.checked = c.checked;
+                        break;  
+                }
+        }
+        ListEditor.selectedList.updateInfo(formData);
+        ListEditor.selectedList.updateTable();
+        ListEditor.closeWindow();
     }
 
-    static archiveList() {
-        if(!confirm("Do you want to archive this list and all of its tasks?")) return;
-        ListEditor.selectedList.archive();
-        ListEditor.closeWindow();
+    static closeWindow() {
+        ListEditor.div.style.display = "none";
     }
 
     static deleteList() {

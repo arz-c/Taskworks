@@ -90,14 +90,15 @@ hr {
     vertical-align: middle;
 }
 
-#newListButton {
+#listConfigDiv * {
     color: var(--primary-colour);
     background-color: var(--secondary-colour);
     font-weight: bold;
     font-size: var(--heading-text-size);
     margin: 0.5em;
     box-sizing: border-box;
-    padding: 0.5em 2em;
+    width: 10em;
+    height: 2em;
 }
 
 .alignLeft {
@@ -114,6 +115,7 @@ hr {
     margin: 0.5em;
     border: 0.3em solid var(--border-colour);
     border-spacing: 0.4em;
+    max-width: calc(var(--task-width) + 1em);
 }
 
 .list > thead > .title {

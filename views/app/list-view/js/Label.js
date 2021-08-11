@@ -16,6 +16,12 @@ class Label {
         }
     }
 
+    updateInfo(data) {
+        this.title = data.title;
+        this.colour = data.colour;
+        pushToDB("labels", "edit", {index: allLabels.indexOf(this), object: this.objectify()});
+    }
+
     static parseInput(inputStr) {
         if(inputStr == null)
             return [];
@@ -55,12 +61,6 @@ class Label {
 
     toString() {
         return this.title/* + " (" + this.colour.toString() + ")"*/;
-    }
-
-    updateInfo(data) {
-        this.title = data.title;
-        this.colour = data.colour;
-        pushToDB("labels", "edit", {index: allLabels.indexOf(this), object: this.objectify()});
     }
 
     delete() {

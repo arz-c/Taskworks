@@ -37,6 +37,11 @@ class Day {
         let len = this.tasks.length; // need this so for loop doesn't dynamically check for new lengths
         for(let i = 0 ; i < len; i++) {
             let curTask = this.tasks[i];
+            let due;
+            if(!t.optionals.due) // due is an optional property
+                due = t.doingStart;
+            else
+                due = t.due;
             // tasks array goes from highest to lowest priortity
             if(t.checkedByDay[this.id]) { // if this task is checked by day, ignore everything else and
                 if(curTask.checked) { // look for the checked by list section
@@ -46,14 +51,14 @@ class Day {
             } else if(curTask.checked || curTask.checkedByDay[this.id]) { // if just made it to the checked task group at the bottom
                 this.tasks.splice(i, 0, t); // insert element in position
                 return i;
-            } else if(comparingDates && (numericDateToInt(t.due) < numericDateToInt(curTask.due) || t.priority > curTask.priority)) { // insert either in between same priority tasks or at the bottom of the priority group
+            } else if(comparingDates && (numericDateToInt(due) < numericDateToInt(curTask.due) || t.priority > curTask.priority)) { // insert either in between same priority tasks or at the bottom of the priority group
                 this.tasks.splice(i, 0, t); // insert element in position
                 return i;
             } else if(t.priority > curTask.priority) {
                 this.tasks.splice(i, 0, t); // insert element in position
                 return i;
             } else if(t.priority == curTask.priority) { // if in the same priority group (=)/just made it past same priority group (>)
-                if(numericDateToInt(t.due) < numericDateToInt(curTask.due)) { // if new task is due before cur task
+                if(numericDateToInt(due) < numericDateToInt(curTask.due)) { // if new task is due before cur task
                     this.tasks.splice(i, 0, t); // insert element in position
                     return i;
                 } else {

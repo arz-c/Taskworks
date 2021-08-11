@@ -124,8 +124,6 @@ function main() {
                 data: {
                     labels: [],
                     lists: [],
-                    archivedTasks: [],
-                    archivedLists: []
                 }
             }
             users.push(user)

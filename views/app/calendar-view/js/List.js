@@ -2,7 +2,7 @@
 class List {
     constructor(data = {}) {
         this.title = data.title || "New list";
-        this.tasks = []; // if tasks were in the "data" parameter, they are added to this list at the bottom of the constructor (so the HTML table is ready for tasks to be added to)
+        this.tasks = [];
         if(data.tasks != undefined) {
             for(let i = 0; i < data.tasks.length; i++) {
                 this.addTask(new Task(data.tasks[i])); 
@@ -11,9 +11,13 @@ class List {
     }
 
     objectify() {
+        let tasks = [];
+        for(let t of this.tasks) {
+            tasks.push(t.objectify());
+        }
         return {
             title: this.title,
-            tasks: this.tasks,
+            tasks: tasks
         }
     }
 
@@ -83,17 +87,6 @@ class List {
     updateInfo(data) {
         this.title = data.title;
         pushToDB("lists", "edit", {index: allLists.indexOf(this), object: this.objectify()});
-    }
-
-    archive() {
-        for(let i = this.tasks.length - 1; i >= 0; i--) // this is done backwards because elements are being dynamically removed from this.tasks
-            this.tasks[i].archive();
-        this.elements.table.remove();
-        archivedLists.push(this);
-        let allListsIndex = allLists.indexOf(this);
-        pushToDB("archivedLists", "add", {object: this.objectify()});
-        pushToDB("lists", "remove", {index: allListsIndex});
-        allLists.splice(allListsIndex, 1);
     }
 
     delete() {

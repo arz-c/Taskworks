@@ -12,14 +12,6 @@ fetchFromDB(function() {
             allTasks.push(t);
         }
     }
-    for(let o of res.archivedTasks) {
-        o.archived = true;
-        archivedTasks.push(new Task(o));
-    }
-    for(let o of res.archivedLists) {
-        o.archived = true;
-        archivedLists.push(new List(o));
-    }
     setupModal();
     setupCalendar();
 });
@@ -91,24 +83,26 @@ function setupCalendar(monthOffset = 0) {
     let dotw = curMonthObj.getDay();
     let year = curMonthObj.getYear();
     let month = curMonthObj.getMonth();
-    daysInMonth = _getDaysInMonth(curMonthObj);
+    let daysInMonth = _getDaysInMonth(curMonthObj);
 
-    let prevMonth = (month != 0) ? month - 1 : 11;
-    let prevMonthObj = new Date();
-    prevMonthObj.setMonth(prevMonth);
+    let prevMonthObj = new Date(curMonthObj.getTime());
+    prevMonthObj.setMonth(prevMonthObj.getMonth() - 1);
+    let prevMonth = prevMonthObj.getMonth();
+    let prevMonthYear = prevMonthObj.getYear();
     let daysInPrevMonth = _getDaysInMonth(prevMonthObj);
     let visibleDaysInPrevMonth = dotw;
 
-    let nextMonth = (month != 11) ? month + 1 : 0;
-    let nextMonthObj = new Date();
-    nextMonthObj.setDate(nextMonth);
+    let nextMonthObj = new Date(curMonthObj.getTime());
+    nextMonthObj.setMonth(nextMonthObj.getMonth() + 1);
+    let nextMonth = nextMonthObj.getMonth();
+    let nextMonthYear = nextMonthObj.getYear();
     let daysInNextMonth = _getDaysInMonth(nextMonthObj);
-    let visibleDaysInNextMonth = 0;
+    let visibleDaysInNextMonth = 0; // is increased as next month days are filled in
 
     // CALENDAR TEMPLATE CREATION
 
     // Creating month header
-    document.getElementById("monthHeader").innerHTML = FULL_MONTH_STRINGS[month];
+    document.getElementById("monthHeader").innerHTML = `${FULL_MONTH_STRINGS[month]} ${curMonthObj.getFullYear()}`;
 
     // Creating dotw header rows
     let dotwRow = table.insertRow();
@@ -120,7 +114,7 @@ function setupCalendar(monthOffset = 0) {
     if(visibleDaysInPrevMonth != 0) {
         let row = table.insertRow();
         for(let i = visibleDaysInPrevMonth - 1; i >= 0; i--) { // adding previous month days to the row
-            _createDayCellAt(row, year, prevMonth, daysInPrevMonth - i, true);
+            _createDayCellAt(row, prevMonthYear, prevMonth, daysInPrevMonth - i, true);
         }
         for(let i = 0; i < 7 - visibleDaysInPrevMonth; i++) { // filling in the rest of the row with current month days
             _createDayCellAt(row, year, month, i, false);
@@ -129,20 +123,28 @@ function setupCalendar(monthOffset = 0) {
 
     // Creating current month section
     let dayOffset = (visibleDaysInPrevMonth == 0) ? 0 : 7 - visibleDaysInPrevMonth; // if a previous month section was created, an offset is now present
-    let numWeeks = (dayOffset == 0) ? 5 : 4; // if a previous month section was created, 1 less week is needed
-    for(let i = 0; i < numWeeks; i++) {
-        let row = table.insertRow();
-        for(let j = 0; j < 7; j++) {
-            let dateNum = i * 7 + j + dayOffset;
-            if(dateNum <= daysInMonth) {
-                _createDayCellAt(row, year, month, dateNum, false);
-            } else {
-                // Creating next month section once the date number exceeds the total number of days in current month
-                visibleDaysInNextMonth = 7 - j; // - 1 since 'i' goes from 0 - 6 instead of 1 - 7
-                for(let k = 0; k < 7 - j; k++) {
-                    _createDayCellAt(row, year, nextMonth, k, true);
+    let numWeeks = 6;
+    if(dayOffset != 0)
+        numWeeks -= 1; // if a previous month section was created, 1 less week is needed
+    
+    {
+        let nextMonthOffset = 0;
+        for(let i = 0; i < numWeeks; i++) {
+            let row = table.insertRow();
+            for(let j = 0; j < 7; j++) {
+                let dateNum = i * 7 + j + dayOffset;
+                if(dateNum <= daysInMonth) {
+                    _createDayCellAt(row, year, month, dateNum, false);
+                } else { // Creating next month section once the date number exceeds the total number of days in current month
+                    visibleDaysInNextMonth += 7 - j; // - 1 since 'i' goes from 0 - 6 instead of 1 - 7
+                    // Create next month section (including 6th row)
+                    let k;
+                    for(k = 0 + nextMonthOffset; k < 7 - j + nextMonthOffset; k++) {
+                        _createDayCellAt(row, nextMonthYear, nextMonth, k, true);
+                    }
+                    nextMonthOffset = k;
+                    break;
                 }
-                break;
             }
         }
     }
@@ -171,11 +173,18 @@ function setupCalendar(monthOffset = 0) {
 
         function _setTodayTimeout() {
             let today = new Date();
+            // today.setDate(today.getDate() + 1) // for testing
             let yesterday = new Date();
+            // yesterday.setDate(yesterday.getDate() + 1)  // for testing
             yesterday.setDate(yesterday.getDate() - 1);
             if(yesterday.getMonth() == today.getMonth()) { // if months are different, indicates new month
+                // set new today
                 days[yesterday.getDate() + visibleDaysInPrevMonth - 1].removeAsToday();
+                // set yesterday's tasks to overdue
                 days[today.getDate() + visibleDaysInPrevMonth - 1].setToToday();
+                for(let i = 0; i < todayI + 1; i++) { // safe to do + 1 since we know we're still in same month, meaning todayI (yesterday's index) + 1 is still within calendar's limit
+                    days[i].setToOverdue();
+                }
             }
             console.log(yesterday.getDate() + dayOffset - 1, today.getDate() + dayOffset - 1)
             setTimeout(_setTodayTimeout.bind(this), 24 * 60 * 60 * 1000 + 500); // fresh day is garunteed here; +500 to ensure day has changed in JS's Day object
@@ -209,7 +218,7 @@ function setupCalendar(monthOffset = 0) {
     }
 
     // Creating calendar start and end objefcts so they can be passed to _isDateRangeOverlap
-    let calendarStart = new Date();
+    let calendarStart = new Date(curMonthObj.getTime());
     if(visibleDaysInPrevMonth != 0) { // there are visible days from the prev month
         calendarStart.setMonth(prevMonth);
         calendarStart.setDate(daysInPrevMonth - visibleDaysInPrevMonth);
@@ -218,7 +227,7 @@ function setupCalendar(monthOffset = 0) {
         calendarStart.setDate(0);
     }
 
-   let calendarEnd = new Date();
+   let calendarEnd = new Date(curMonthObj.getTime());
     if(visibleDaysInNextMonth != 0) { // there are visible days from the next month
         calendarEnd.setMonth(nextMonth);
         calendarEnd.setDate(visibleDaysInNextMonth);
@@ -230,10 +239,14 @@ function setupCalendar(monthOffset = 0) {
     // Looping through all tasks and adding them to the calendar
     for(let t of allTasks) {
         let taskStart = new Date(t.doingStart);
-        let taskStartMonth = taskStart.getMonth();
-        let taskEnd = new Date(t.doingEnd);
-        let taskEndMonth = taskEnd.getMonth();
+        let taskEnd = (!t.optionals.doingEnd) ? taskStart : new Date(t.doingEnd); // task end is an optional property
         if(_isDateRangeOverlap(taskStart, taskEnd, calendarStart, calendarEnd)) { // if the task's start and end overlap with calendar's start and end
+            let taskStartYear = taskStart.getYear();
+            let taskStartMonth = taskStart.getMonth();
+
+            let taskEndYear = taskEnd.getYear();
+            let taskEndMonth = taskEnd.getMonth();
+
             let taskStartDate;
             let taskStartAbsoluteDate = taskStart.getDate();
             if(taskStartMonth == month) // if same months
@@ -242,7 +255,7 @@ function setupCalendar(monthOffset = 0) {
                 taskStartDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskStartAbsoluteDate); // set date to whatever the date is (in the prev month)
             else if(taskStartMonth == nextMonth && taskStartAbsoluteDate <= visibleDaysInPrevMonth) // if part of the visible next month
                 taskStartDate = visibleDaysInPrevMonth + daysInMonth + taskStartAbsoluteDate; // set date to whatever the date is (in the next month)
-            else if(taskStartMonth < month) // if it starts any earlier
+            else if(taskStartMonth < month || taskStartYear < year) // if it starts any earlier
                 taskStartDate = 0; // start from first day in calendar (including prev month if applicable)
 
             let taskEndDate;
@@ -253,8 +266,9 @@ function setupCalendar(monthOffset = 0) {
                 taskEndDate = visibleDaysInPrevMonth + daysInMonth + taskEndAbsoluteDate;
             else if(taskEndMonth == prevMonth && taskEndAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth))
                 taskEndDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskEndAbsoluteDate);
-            else if(taskEndMonth > month)
+            else if(taskEndMonth > month || taskEndYear > year)
                 taskEndDate = visibleDaysInPrevMonth + daysInMonth + visibleDaysInNextMonth;
+            
             for(let i = taskStartDate; i <= taskEndDate; i++) {
                 if(t.dotw[i % 7] && t.active) // dotw and active check
                     days[i].addTask(t);
@@ -266,11 +280,11 @@ function setupCalendar(monthOffset = 0) {
 let curMonthOffset = 0;
 
 function changeMonthBtnOnclick(increment) {
-    if(new Date().getMonth() + curMonthOffset + increment >= 0) {
+    //if(new Date().getMonth() + curMonthOffset + increment >= 0) {
         curMonthOffset += increment;
         setupCalendar(curMonthOffset);
-    } else
-        openModal("Cannot change years");
+    //} else
+    //    openModal("Cannot change years");
 }
 
 document.getElementById("prevMonthBtn").onclick = function() {

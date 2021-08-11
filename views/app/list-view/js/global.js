@@ -5,9 +5,6 @@ const PRIORITY_LEVELS = ["Low", "Medium", "High"];
 let allLabels = [];
 let allLists = [];
 
-let archivedTasks = [];
-let archivedLists = [];
-
 const _myDatabaseID = document.getElementById("databaseID").innerHTML; // a unique ID provided by the server, used to verify when communicating with database
 
 function createList(list = null) {
@@ -19,17 +16,9 @@ function createList(list = null) {
     pushToDB("lists", "add", {object: list.objectify()});
 }
 
-/*function restoreArchivedList(list) {
-    archivedLists.splice(archivedLists.indexOf(list), 1);
-    pushToDB("archivedLists", "remove", {object: list.objectify()});
-    createList(list);
+function editCheckedLists() {
+    CheckedListsEditor.openWindow();
 }
-
-function restoreArchivedTask(task) {
-    archivedTasks.splice(archivedTasks.indexOf(task), 1);
-    pushToDB("archivedTask", "remove", {object: task.objectify()});
-    allLists[task.list].addTask(task);
-}*/
 
 function _serialize(obj, parent = null) {
     let str = [];

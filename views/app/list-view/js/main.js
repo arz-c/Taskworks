@@ -1,5 +1,6 @@
 Form.init();
 ListEditor.init();
+CheckedListsEditor.init();
 LabelEditor.init();
 TaskEditor.init();
 
@@ -11,13 +12,5 @@ fetchFromDB(function() {
     updateLabelsEverywhere();
     for(let o of res.lists) {
         allLists.push(new List(o));
-    }
-    for(let o of res.archivedTasks) {
-        o.archived = true;
-        archivedTasks.push(new Task(o));
-    }
-    for(let o of res.archivedLists) {
-        o.archived = true;
-        archivedLists.push(new List(o));
     }
 });

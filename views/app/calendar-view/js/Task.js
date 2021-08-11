@@ -4,21 +4,23 @@ class Task {
         let tmrwStr = new Date();
         tmrwStr.setDate(tmrwStr.getDate() + 1);
         tmrwStr = dateObjToNumericDate(tmrwStr);
+
         // if undefined, will set to a default value, else, will set to given value
         // the (data.x != undefined) is only needed for those that require a type change from string -> other type (because everything from database is always in string form)
         this.title = data.title || "New task";
         this.description = data.description || "";
+
         this.labelIndices = (data.labelIndices != undefined) ? data.labelIndices.map(x => parseInt(x)) : [];
         this.mainLabel = parseInt(data.mainLabel) || 0;  // used to determine which label the task will use as its border colour; set to 0 by default, but when it's used, a check is done to ensure task.labelIndices has a 0th element
+
         this.doingStart = data.doingStart || todayStr;
         this.doingEnd = data.doingEnd || todayStr;
         this.due = data.due || tmrwStr;
         this.dotw = (data.dotw != undefined) ? data.dotw.map(x => x == "true") : [true, true, true, true, true, true, true]; // days of the week
-        this.frequency = parseInt(data.frequency) || 0;
+        //this.frequency = parseInt(data.frequency) || 0;
         this.priority = (data.priority != undefined) ? parseInt(data.priority) : 1;
         
         this.active = (data.active != undefined) ? (data.active == "true") : true;
-        this.list = (data.listIndex != undefined) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
         this.checked = (data.checked != undefined) ? (data.checked == "true") : false;
         this.checkedByDay = (data.checkedByDay != undefined) ? new function() {
             let op = {};
@@ -27,6 +29,12 @@ class Task {
             return op;
         } : [];
 
+        this.optionals = {
+            doingEnd: (data.optionals != undefined) ? data.optionals.doingEnd == "true" : false,
+            due: (data.optionals != undefined) ? data.optionals.due == "true" : false
+        };
+        
+        this.list = (data.listIndex != undefined) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
         this.days = {}; // not being stored in db; this property is also always set by parent
     }
 
@@ -34,19 +42,24 @@ class Task {
         return {
             title: this.title,
             description: this.description,
+
             labelIndices: this.labelIndices,
             mainLabel: this.mainLabel,
+
             doingStart: this.doingStart,
             doingEnd: this.doingEnd,
             due: this.due,
             dotw: this.dotw,
-            frequency: this.frequency,
+            //frequency: this.frequency,
             priority: this.priority,
-            
+
+            optionals: this.optionals,
+
             active: this.active,
-            listIndex: allLists.indexOf(this.list),
             checked: this.checked,
-            checkedByDay: this.checkedByDay
+            checkedByDay: this.checkedByDay,
+            
+            listIndex: allLists.indexOf(this.list),
         }
     }
 
@@ -94,7 +107,8 @@ class Task {
         else
             table.className = table.className.replace(" dayChecked", "");
         this.days[day].updateTaskPosition(this);
-        if(save) pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
+        if(save)
+            pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
     }
 
     _getInfoStrings() {
@@ -197,17 +211,6 @@ class Task {
         // this must be done after table has been appended
         this._updateCheckByList(id);
         if(!this.checked) this._setCheckByDay(id, this.checkedByDay[id], false); // set initial state of checkbox (save = false)
-    }
-
-    archive() {
-        if(this.list)
-            this.list.removeTask(this);
-        for(let d in this.elements) {
-            this.elements[d].table.remove();
-        }
-        archivedTasks.push(this);
-        pushToDB("archivedTasks", "add", {object: this.list.objectify()});
-        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
     }
 
     delete() {

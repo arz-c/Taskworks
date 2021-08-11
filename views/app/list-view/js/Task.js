@@ -4,65 +4,87 @@ class Task {
         let tmrwStr = new Date();
         tmrwStr.setDate(tmrwStr.getDate() + 1);
         tmrwStr = dateObjToNumericDate(tmrwStr);
+
         // if undefined, will set to a default value, else, will set to given value
         // the (data.x != undefined) is only needed for those that require a type change from string -> other type (because everything from database is always in string form)
         this.title = data.title || "New task";
         this.description = data.description || "";
+
         this.labelIndices = (data.labelIndices != undefined) ? data.labelIndices.map(x => parseInt(x)) : [];
         this.mainLabel = parseInt(data.mainLabel) || 0; // used in Calendar View to determine which label the task will use as its border colour; set to 0 by default, but when it's used, a check is done to ensure task.labelIndices has a 0th element
+        
         this.doingStart = data.doingStart || todayStr;
         this.doingEnd = data.doingEnd || todayStr;
         this.due = data.due || tmrwStr;
         this.dotw = (data.dotw != undefined) ? data.dotw.map(x => x == "true") : [true, true, true, true, true, true, true]; // days of the week
-        this.frequency = parseInt(data.frequency) || 0;
+        //this.frequency = parseInt(data.frequency) || 0;
         this.priority = (data.priority != undefined) ? parseInt(data.priority) : 1;
         
         this.active = (data.active != undefined) ? (data.active == "true") : true;
-        this.list = (data.listIndex != undefined) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
         this.checked = (data.checked != undefined) ? (data.checked == "true") : false;
         this.checkedByDay = data.checkedByDay || []; // since this isn't being used in List View, no need to convert string => bool as we are in Calendar View's Task
 
+        this.optionals = {
+            doingEnd: (data.optionals != undefined) ? data.optionals.doingEnd == "true" : false,
+            due: (data.optionals != undefined) ? data.optionals.due == "true" : false
+        };
+        
+        this.list = (data.listIndex != undefined) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
+
         // TIMEOUTS
-
-        if(!data.archived) { // don't want to set timeouts if this task is archived
-            // setting timeout to reset done task checkbox every start of the day
-            // IMPORTANT: this needs to be done both on the client and server:
-            //     1. client for when page isn't refreshed by the user
-            //     2. server for when page isn't open by the user
-            /* Commented out because realized that this feature may be annoying if a task is done early
-            let rightNow = new Date();
-            let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            setDateObjToDayStart(tomorrow);
-            let deltaT = tomorrow.getTime() - rightNow.getTime();
-            console.log(`'${this.title}' will be checked for reset in ` +
-                `${Math.floor(deltaT / 1000 / 60 / 60)} hours and ` +
-                `${Math.round(deltaT / 1000 / 60 % 60)} minutes`);
-            setTimeout(this._resetTimeoutCallback.bind(this), deltaT); // .bind solves the issue of passing current context*/
-
-            // setting timeout for approaching tasks (upcoming/overdue)
+        // setting timeout for approaching tasks (upcoming/overdue)
+        if(this.optionals.due) // since duedates are optional, don't set approaching timeout if duedate is disabled
             this._setApproachingTimeout();
-        }
     }
 
     objectify() {
         return {
             title: this.title,
             description: this.description,
+
             labelIndices: this.labelIndices,
             mainLabel: this.mainLabel,
+
             doingStart: this.doingStart,
             doingEnd: this.doingEnd,
             due: this.due,
             dotw: this.dotw,
-            frequency: this.frequency,
+            //frequency: this.frequency,
             priority: this.priority,
-            
+
+            optionals: this.optionals,
+                
             active: this.active,
-            listIndex: allLists.indexOf(this.list),
             checked: this.checked,
-            checkedByDay: this.checkedByDay
+            checkedByDay: this.checkedByDay,
+            
+            listIndex: allLists.indexOf(this.list),
         }
+    }
+
+    updateInfo(data) {
+        this.title = data.title;
+        this.description = data.description;
+        
+        this.labelIndices = data.labelIndices;
+        this.mainLabel = data.mainLabel;
+
+        this.doingStart = data.doingStart;
+        this.doingEnd = data.doingEnd;
+        this.due = data.due;
+        this.dotw = data.dotw;
+        //this.frequency = data.frequency;
+        this.priority = data.priority;
+
+        this.optionals = data.optionals;
+
+        this.active = data.active;
+
+        if(this.optionals.due) // since duedates are optional, don't set approaching timeout if duedate is disabled
+            this._setApproachingTimeout();
+        else
+            this._clearApproachingStyles();
+        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
     }
 
     _resetTimeoutCallback() {
@@ -169,7 +191,7 @@ class Task {
     _getInfoStrings() {
         // Doing Date String
         let doingString = "Do: ";
-        if(this.doingStart == this.doingEnd) {
+        if(this.doingStart == this.doingEnd || !this.optionals.doingEnd) {
             doingString += Task._numericToWrittenDate(this.doingStart);
         } else {
             doingString += 
@@ -202,7 +224,7 @@ class Task {
             title: this.title,
             labelIndices: (this.labelIndices.length) ? this.labelIndices : "",
             doing: doingString,
-            due: "Due: " + Task._numericToWrittenDate(this.due),
+            due: (this.optionals.due) ? "Due: " + Task._numericToWrittenDate(this.due) : "",
             dotw: dotwString,
             priority: "Priority: " + priorityString.toLowerCase()
         };
@@ -321,31 +343,6 @@ class Task {
         // PUSHING UPDATES
         this.list.updateTaskPosition(this) // calling list function that updates its position in the array and the list table
     }
-      
-    updateInfo(data) {
-        this.title = data.title;
-        this.description = data.description;
-        this.labelIndices = data.labelIndices;
-        this.mainLabel = data.mainLabel;
-        this.doingStart = data.doingStart;
-        this.doingEnd = data.doingEnd;
-        this.dotw = data.dotw;
-        this.frequency = data.frequency;
-        this.due = data.due;
-        this.priority = data.priority;
-        this.active = data.active;
-        this._setApproachingTimeout();
-        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
-    }
-
-    archive() {
-        if(this.list)
-            this.list.removeTask(this);
-        this.elements.table.remove();
-        archivedTasks.push(this);
-        pushToDB("archivedTasks", "add", {object: this.list.objectify()});
-        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
-    }
 
     delete() {
         if(this.list)
@@ -354,119 +351,4 @@ class Task {
         pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
         delete this;
     }
-
-     /*createOrUpdateTable(parent) {
-        if(this.elements == undefined) // if this is the first time the table is being drawn
-            this.elements = [];
-
-        let info = this._getInfoStrings();
-
-        let table;
-        if(this.elements.table == undefined) {
-            table = document.createElement("table");
-            table.className = "task";
-            this.elements.table = table;
-        } else
-            table = this.elements.table;
-
-        // HEADER ROW
-
-        // Creating row and container - a td is used to hold the row so that the colSpan property can be edited
-        let headerRow;
-        let headerRowContainer;
-        if(this.elements.headerRow == undefined) {
-            headerRow = table.insertRow();
-            headerRowContainer = document.createElement("td"); 
-            headerRowContainer.colSpan = 2;
-            this.elements.headerRow = headerRow;
-        } else {
-            headerRow = this.elements.headerRow;
-        }
-
-        // Creating labels
-        // (a table is created within the task table so that the different labels can appear side-by-side with a gap)
-        // (this can't be inside the headerRowContianer != undefined if statement because labels need to be created both during initial task creation and during task updates)
-        let labelTable;
-        if(this.elements.labelTable == undefined) {
-            labelTable = document.createElement("table"); 
-            labelTable.className = "labelTable"
-            this.elements.labelTable = labelTable;
-        } else {
-            labelTable = this.elements.labelTable;
-            labelTable.innerHTML = "";
-        }
-
-        for(let i = 0; i < info.labelIndices.length; i++) {
-            let label = allLabels[info.labelIndices[i]];
-            Form.addTextNodeTo(labelTable, "td", "label", label.title).style =
-                "border-color: " + Label.arrToCSSColourString(label.colour);
-        }
-
-        // Creating static buttons and appending elements to container, and container to row 
-        if(headerRowContainer != undefined) {
-            // Creating edit task button
-            let editTaskButton = Form.createButton("Edit", function() {
-                TaskEditor.openWindow(this);
-            }.bind(this), "editTaskButton");
-
-            // Creating done task checkbox
-            let doneCheckbox = Form.createInputElement("checkbox", "done", false);
-            doneCheckbox.className = "doneTaskBox";
-            doneCheckbox.onclick = function() {
-                this._setCheck(this.elements.doneCheckbox.checked);
-            }.bind(this);
-            this.elements.doneCheckbox = doneCheckbox;
-
-            // Appending
-            headerRowContainer.append(editTaskButton);
-            headerRowContainer.append(doneCheckbox);
-            headerRowContainer.append(labelTable);
-            headerRow.append(headerRowContainer);
-            
-        }
-
-        // TITLE ROW
-        if(this.elements.titleRow == undefined) {
-            let titleRow = table.insertRow();
-            titleRow.className = "title";
-            Form.addTextNodeTo(titleRow, "td", null, info.title).colSpan = 2;
-            this.elements.titleRow = titleRow;
-        } else {
-            this.elements.titleRow.children[0].innerHTML = info.title;
-        }
-    
-        // DATES ROW
-        if(this.elements.datesRow == undefined) {
-            let datesRow = table.insertRow();
-            datesRow.className = "dates";
-            Form.addTextNodeTo(datesRow, "td", "alignLeft", info.doing).colSpan = 1;
-            Form.addTextNodeTo(datesRow, "td", "alignRight", info.due).colSpan = 1;
-            this.elements.datesRow = datesRow;
-        } else {
-            this.elements.datesRow.children[0].innerHTML = info.doing;
-            this.elements.datesRow.children[1].innerHTML = info.due;
-        }
-    
-        // CONFIG ROW
-        if(this.elements.configRow == undefined) {
-            let configRow = table.insertRow();
-            configRow.className = "config";
-            Form.addTextNodeTo(configRow, "td", "alignLeft", info.dotw).colSpan = 1;
-            Form.addTextNodeTo(configRow, "td", "alignRight", info.priority).colSpan = 1;
-            this.elements.configRow = configRow
-        } else {
-            this.elements.configRow.children[0].innerHTML = info.dotw;
-            this.elements.configRow.children[1].innerHTML = info.priority;
-        }
-        
-        // APPENDING
-        if(parent == undefined) // meaning the table is being updated/it already exists
-            this.list.updateTaskPosition(this); // call list function that updates its position in the array and the list table
-        else
-            parent.appendChild(table);
-
-        // CHECKED OR NOT
-        this._setCheck(this.checked);
-    }*/
-
 }

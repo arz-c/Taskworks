@@ -12,10 +12,10 @@ class LabelEditor {
         form.appendChild(header);
         
         // Title
-        Form.addSpacedInputTo(form, "text", "title", "Title");
+        Form.addSpacedInputTo(form, "text", "title", "Title", false);
 
         // Colour Editor
-        Form.addSpacedInputTo(form, "color", "colour", "Colour");
+        Form.addSpacedInputTo(form, "color", "colour", "Colour", false);
         
         // Buttons
         form.appendChild(Form.createButton("Save", LabelEditor.save, "submit"));
@@ -25,24 +25,6 @@ class LabelEditor {
         // Heirarchy
         div.appendChild(form);
         Form.container.appendChild(div);
-    }
-
-    static save() {
-        let formData = {};
-        for(let c of LabelEditor.form.children) {
-            if(c.tagName == "INPUT")
-                switch(c.name) {
-                    case "title":
-                        formData.title = c.value;
-                        break;
-                    case "colour":
-                        formData.colour = Label.hexToArr(c.value);
-                        break;
-                }
-        }
-        LabelEditor.selectedLabel.updateInfo(formData);
-        updateLabelsEverywhere();
-        LabelEditor.closeWindow();
     }
 
     static openWindow(label) {
@@ -62,6 +44,24 @@ class LabelEditor {
                 }
             }
         }
+    }
+
+    static save() {
+        let formData = {};
+        for(let c of LabelEditor.form.children) {
+            if(c.tagName == "INPUT")
+                switch(c.name) {
+                    case "title":
+                        formData.title = c.value;
+                        break;
+                    case "colour":
+                        formData.colour = Label.hexToArr(c.value);
+                        break;
+                }
+        }
+        LabelEditor.selectedLabel.updateInfo(formData);
+        updateLabelsEverywhere();
+        LabelEditor.closeWindow();
     }
 
     static closeWindow() {

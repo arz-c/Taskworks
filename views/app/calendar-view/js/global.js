@@ -7,9 +7,6 @@ let allLabels = [];
 let allLists = [];
 let allTasks = [];
 
-let archivedLists = [];
-let archivedTasks = [];
-
 const _myDatabaseID = document.getElementById("databaseID").innerHTML; // a unique ID provided by the server, used to verify when communicating with database
 
 function _serialize(obj, parent = null) {

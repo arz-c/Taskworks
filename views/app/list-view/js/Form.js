@@ -36,13 +36,27 @@ class Form {
         return element;
     }
 
-    static createLabel(htmlFor, innerHTML, header = false) {
-        let label = document.createElement("label");
-        if(header)
-            label.className = "header";
+    static createLabel(htmlFor, innerHTML, header, optionalOnclick) {
+        let label;
+        let div;
+        if(!optionalOnclick) {
+            label = document.createElement("label");
+        } else {
+            div = document.createElement("div");
+            div.className = "optionalDiv";
+            label = document.createElement("label");
+            let checkbox = Form.createInputElement("checkbox", "optional", false);
+            checkbox.onclick = optionalOnclick;
+            div.appendChild(label);
+            div.appendChild(checkbox);
+        }
         label.htmlFor = htmlFor;
         label.innerHTML = innerHTML;
-        return label;
+        if(header)
+            label.className = "header";
+        if(!optionalOnclick)
+            return label;
+        return div;
     }
     
     static createInputElement(type, name, value, extra = null) {
@@ -76,33 +90,33 @@ class Form {
     }
     
     static addTextInputTo(parent, name, formattedName) {
-        parent.appendChild(Form.createLabel(name, formattedName, true))
+        parent.appendChild(Form.createLabel(name, formattedName, true, false))
         parent.appendChild(Form.createInputElement("text", name, null, "Enter " + formattedName));
         Form.addBrTo(parent);
     }
     
     static addListInputTo(parent, type, content, name, formattedName, defaultIndicies = []) {
-        parent.appendChild(Form.createLabel(name, formattedName, true));
-        Form.addBrTo(parent);
+        parent.appendChild(Form.createLabel(name, formattedName, true, false));
+        Form.addBrTo(parent); // if optional, a div is created instead of a label which auto adds a space
         for(let i = 0; i < content.length; i++) {
             let c = content[i];
             parent.appendChild(Form.createInputElement(type, name, i, defaultIndicies.includes(i) ? true : null));
-            parent.appendChild(Form.createLabel(name, c));
+            parent.appendChild(Form.createLabel(name, c, false, false));
         }
         Form.addBrTo(parent);
         Form.addBrTo(parent);
     }
 
-    static addSpacedInputTo(parent, type, name, formattedName, onlyOneSpaceAfter = false) {
-        parent.appendChild(Form.createLabel(name, formattedName, true))
-        Form.addBrTo(parent);
+    static addSpacedInputTo(parent, type, name, formattedName, optionalOnclick, onlyOneSpaceAfter = false) {
+        parent.appendChild(Form.createLabel(name, formattedName, true, optionalOnclick))
+        if(!optionalOnclick) Form.addBrTo(parent); // if optional, a div is created instead of a label which auto adds a space
         parent.appendChild(Form.createInputElement(type, name, null));
         Form.addBrTo(parent);
         if(!onlyOneSpaceAfter) Form.addBrTo(parent);
     }
 
     static addTextAreaTo(parent, name, formattedName, rows, cols) {
-        parent.appendChild(Form.createLabel(name, formattedName, true))
+        parent.appendChild(Form.createLabel(name, formattedName, true, false))
         Form.addBrTo(parent);
         let textArea = document.createElement("textarea");
         textArea.name = name;
@@ -114,7 +128,7 @@ class Form {
     }
 
     static addDropdownMenuTo(parent, name, formattedName, content) {
-        parent.appendChild(Form.createLabel(name, formattedName, true))
+        parent.appendChild(Form.createLabel(name, formattedName, true, false))
         Form.addBrTo(parent);
         let select = document.createElement("select");
         select.name = name;
