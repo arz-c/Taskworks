@@ -10,14 +10,20 @@ class List {
         }
     }
 
-    objectify() {
-        let tasks = [];
+    addTask(task) {
+        task.list = this;
+        //let newIndex = this._insertTaskToCorrectPos(task); // add task to correct position in this.tasks*/
+        this.tasks.push(task);
+    }
+
+    /*objectify() {
+        /*let tasks = [];
         for(let t of this.tasks) {
             tasks.push(t.objectify());
         }
         return {
-            title: this.title,
-            tasks: tasks
+            title: this.title
+            //tasks: tasks
         }
     }
 
@@ -73,14 +79,9 @@ class List {
 
     updateTaskPosition(task) {
         this._insertTaskToCorrectPos(task, true); // only updating position in this.tasks since list table isn't visible in this view
-    }
+    }*/
 
-    addTask(task) {
-        task.list = this;
-        let newIndex = this._insertTaskToCorrectPos(task); // add task to correct position in this.tasks
-    }
-
-    removeTask(task) {
+    /*removeTask(task) {
         this.tasks.splice(this.tasks.indexOf(task), 1);
     }
 
@@ -97,5 +98,5 @@ class List {
         pushToDB("lists", "remove", {index: allListsIndex});
         allLists.splice(allListsIndex, 1);
         delete this;
-    }
+    }*/
 }

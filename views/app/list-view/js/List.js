@@ -23,8 +23,10 @@ class List {
         const _newTaskBtnOnclick = function() {
             let newTask = new Task();
             TaskEditor.openWindow(newTask)
-            this.addTask(newTask);
-            pushToDB("lists", "edit", {index: allLists.indexOf(this), object: this.objectify()}); // since list holds task data, updating list in database
+            this.addTask(newTask, true);
+            pushToDB("tasks", "add", {index: {
+                list: allLists.indexOf(newTask.list)
+            }, object: newTask.objectify()});
         }
 
         let newTaskBtn = Form.createButton("Create new task", _newTaskBtnOnclick.bind(this));
@@ -76,6 +78,7 @@ class List {
     }
 
     objectify() {
+        // when saving list to db, include its tasks (so that all tasks don't have to manually then be uploaded to db)
         let tasks = [];
         for(let t of this.tasks) {
             tasks.push(t.objectify());
@@ -101,10 +104,8 @@ class List {
         document.body.insertBefore(table, document.getElementById("listConfigDiv")); // insert to rightmost pos
 
         // moving list element in allLists
-        //let oldI = allLists.indexOf(this);
         allLists.splice(allLists.indexOf(this), 1); // remove first
         allLists.push(this); // add to end
-        //let newI = allLists.length - 1;
 
         // saving
         for(let i = 0; i < allLists.length; i++) {
@@ -167,8 +168,26 @@ class List {
         return newIndex;
     }
 
-    updateTaskPosition(task) {
+    _pushTaskComparativeArrayToDB(oldTasksOrder, newTasksOrder) {
+        // building an array with elements index 'x' = [i, j], where, of the task at index 'x', 'i' is the old position and 'j' is the new position
+        let comparativeArray = [];
+        for(let i = 0; i < newTasksOrder.length; i++) {
+            let e = [i, newTasksOrder.indexOf(oldTasksOrder[i])];
+            comparativeArray[i] = (e[1] != -1) ? e : undefined;
+        }
+
+        pushToDB("lists", "editTaskOrder", {index: allLists.indexOf(this), comparativeArray: comparativeArray});
+    }
+
+    updateTaskPosition(task, save = false) {
+        let oldTasksOrder = [...this.tasks];
         let newIndex = this._insertTaskToCorrectPos(task, true);
+        let newTasksOrder = [...this.tasks];
+
+        if(save) {
+            this._pushTaskComparativeArrayToDB(oldTasksOrder, newTasksOrder);
+        }
+
         // moving task table to new index
         let table = task.elements.table; // save the table
         table.parentElement.remove(); // remove the row holding the table
@@ -179,9 +198,12 @@ class List {
             this.elements.table.insertRow(newIndex).appendChild(table); // add the table to a row created at the given index
     }
 
-    addTask(task) {
+    addTask(task, save = false) {
         task.list = this;
+        let oldTasksOrder = [...this.tasks];
         let newIndex = this._insertTaskToCorrectPos(task); // add task to correct position in this.tasks
+        let newTasksOrder = [...this.tasks];
+        if(save) this._pushTaskComparativeArrayToDB(oldTasksOrder, newTasksOrder);
         task.createTable( // add the table to a row created at its new index in this.tasks
             this.elements.table.insertRow(newIndex)
         );

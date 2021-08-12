@@ -28,35 +28,6 @@ function setupModal() {
     }
 }
 
-/* WIP Dark Mode
-function getAllCSSVars() {
-    return Array.from(document.styleSheets)
-        .filter(
-            sheet =>
-            sheet.href === null || sheet.href.startsWith(window.location.origin)
-        )
-        .reduce(
-            (acc, sheet) =>
-            (acc = [
-                ...acc,
-                ...Array.from(sheet.cssRules).reduce(
-                (def, rule) =>
-                    (def =
-                    rule.selectorText === ":root"
-                        ? [
-                            ...def,
-                            ...Array.from(rule.style).filter(name =>
-                            name.startsWith("--DYN")
-                            )
-                        ]
-                        : def),
-                []
-                )
-            ]),
-            []
-        );
-}*/
-
 function setupCalendar(monthOffset = 0) {
     function _getDaysInMonth(dateObj) {
         // month + 1 because Date constructor is 1-based while Date.getMonth is 0-based

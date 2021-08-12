@@ -165,19 +165,41 @@ function main() {
                 ).replace(/^/gm, '  ') // tab in
             ) 
 
-            switch(header.action) {
-                case 'add':
-                    getUserByID(header.id)['data'][header.type].push(payload.object)
-                    break
-                case 'edit':
-                    getUserByID(header.id)['data'][header.type][parseInt(payload.index)] = payload.object
-                    break
-                case 'remove':
-                    getUserByID(header.id)['data'][header.type].splice(parseInt(payload.index), 1)
-                    break
+            if(header.type == 'tasks') { // when tasks are being directly changed, they require 2 indicies, which is why they are a special case
+                switch(header.action) {
+                    case 'add':
+                        getUserByID(header.id)['data']['lists'][parseInt(payload.index.list)]['tasks'].push(payload.object)
+                        break
+                    case 'edit':
+                        getUserByID(header.id)['data']['lists'][parseInt(payload.index.list)]['tasks'][parseInt(payload.index.task)] = payload.object
+                        break
+                    case 'remove':
+                        getUserByID(header.id)['data']['lists'][parseInt(payload.index.list)]['tasks'].splice(parseInt(payload.index.task), 1)
+                        break
+                }
+            } else if(header.type == 'lists' && header.action == 'editTaskOrder') { // adjusting task order is more efficient than saving an entirely new list
+                let oldTasks = getUserByID(header.id)['data']['lists'][parseInt(payload.index)]['tasks'];
+                let newTasks = [];
+                let comparativeArray = payload.comparativeArray;
+                for(let e of comparativeArray) {
+                    newTasks[parseInt(e[1])] = (e != undefined) ? oldTasks[parseInt(e[0])] : undefined;
+                }
+                getUserByID(header.id)['data']['lists'][parseInt(payload.index)]['tasks'] = newTasks;
+            } else {
+                switch(header.action) {
+                    case 'add':
+                        getUserByID(header.id)['data'][header.type].push(payload.object)
+                        break
+                    case 'edit':
+                        getUserByID(header.id)['data'][header.type][parseInt(payload.index)] = payload.object
+                        break
+                    case 'remove':
+                        getUserByID(header.id)['data'][header.type].splice(parseInt(payload.index), 1)
+                        break
+                }
             }
-            updateDB();
 
+            updateDB();
             res.send('Saved to DB')
         } catch(e) {
             console.log('ERROR:', e)

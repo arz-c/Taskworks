@@ -39,6 +39,12 @@ class Task {
     }
 
     objectify() {
+        // compressing checkedByDay by excluding all false days
+        let compressedCheckedByDay = {};
+        for(let day in this.checkedByDay) {
+            if(this.checkedByDay[day] == true) compressedCheckedByDay[day] = true;
+        }
+
         return {
             title: this.title,
             description: this.description,
@@ -57,7 +63,7 @@ class Task {
 
             active: this.active,
             checked: this.checked,
-            checkedByDay: this.checkedByDay,
+            checkedByDay: compressedCheckedByDay,
             
             listIndex: allLists.indexOf(this.list),
         }
@@ -108,7 +114,10 @@ class Task {
             table.className = table.className.replace(" dayChecked", "");
         this.days[day].updateTaskPosition(this);
         if(save)
-            pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
+            pushToDB("tasks", "edit", {index: {
+                list: allLists.indexOf(this.list),
+                task: this.list.tasks.indexOf(this)
+            }, object: this.objectify()});
     }
 
     _getInfoStrings() {
@@ -213,7 +222,7 @@ class Task {
         if(!this.checked) this._setCheckByDay(id, this.checkedByDay[id], false); // set initial state of checkbox (save = false)
     }
 
-    delete() {
+    /*delete() {
         if(this.list)
             this.list.removeTask(this);
         for(let d of this.elements) {
@@ -221,5 +230,5 @@ class Task {
         }
         pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
         delete this;
-    }
+    }*/
 }

@@ -22,7 +22,12 @@ class Task {
         
         this.active = (data.active != undefined) ? (data.active == "true") : true;
         this.checked = (data.checked != undefined) ? (data.checked == "true") : false;
-        this.checkedByDay = data.checkedByDay || []; // since this isn't being used in List View, no need to convert string => bool as we are in Calendar View's Task
+        this.checkedByDay = (data.checkedByDay != undefined) ? new function() {
+            let op = {};
+            for(let key in data.checkedByDay)
+                op[key] = data.checkedByDay[key] == "true" // string => bool
+            return op;
+        } : [];
 
         this.optionals = {
             doingEnd: (data.optionals != undefined) ? data.optionals.doingEnd == "true" : false,
@@ -38,6 +43,12 @@ class Task {
     }
 
     objectify() {
+        // compressing checkedByDay by excluding all false days
+        let compressedCheckedByDay = {};
+        for(let day in this.checkedByDay) {
+            if(this.checkedByDay[day] == true) compressedCheckedByDay[day] = true;
+        }
+
         return {
             title: this.title,
             description: this.description,
@@ -56,7 +67,7 @@ class Task {
                 
             active: this.active,
             checked: this.checked,
-            checkedByDay: this.checkedByDay,
+            checkedByDay: compressedCheckedByDay,
             
             listIndex: allLists.indexOf(this.list),
         }
@@ -84,7 +95,12 @@ class Task {
             this._setApproachingTimeout();
         else
             this._clearApproachingStyles();
-        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
+        
+        //pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // need to push entire list to DB here so the task order remains in sync
+        /*pushToDB("tasks", "edit", {index: {
+                list: allLists.indexOf(this.list),
+                task: this.list.tasks.indexOf(this)
+            }, object: this.objectify()});*/
     }
 
     _resetTimeoutCallback() {
@@ -184,8 +200,12 @@ class Task {
             table.className += " checked";
         else
             table.className = table.className.replace(" checked", "");
-        this.list.updateTaskPosition(this);
-        if(shouldPushToDB) pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
+        this.list.updateTaskPosition(this, shouldPushToDB);
+        if(shouldPushToDB)
+            pushToDB("tasks", "edit", {index: {
+                    list: allLists.indexOf(this.list),
+                    task: this.list.tasks.indexOf(this)
+                }, object: this.objectify()});
     }
 
     _getInfoStrings() {
@@ -337,18 +357,22 @@ class Task {
         e.configRow.children[0].innerHTML = info.dotw;
         e.configRow.children[1].innerHTML = info.priority;
 
-        // CHECKED OR NOT
-        this._setCheck(this.checked);
+        // PUSHING UPDATES -- this._setCheck does this already
+        //this.list.updateTaskPosition(this, true) // calling list function that updates its position in the array and the list table
 
         // PUSHING UPDATES
-        this.list.updateTaskPosition(this) // calling list function that updates its position in the array and the list table
+        this._setCheck(this.checked);
+
     }
 
     delete() {
+        pushToDB("tasks", "remove", {index: {
+                list: allLists.indexOf(this.list),
+                task: this.list.tasks.indexOf(this)
+            }});
         if(this.list)
             this.list.removeTask(this);
         this.elements.table.remove()
-        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
         delete this;
     }
 }
