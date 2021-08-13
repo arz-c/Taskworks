@@ -49,6 +49,7 @@ function setupCalendar(monthOffset = 0) {
 
     // Creating month objects for prev, cur, and next months
     let curMonthObj = new Date();
+    setDateObjToDayStart(curMonthObj);
     curMonthObj.setMonth(curMonthObj.getMonth() + monthOffset);
     curMonthObj.setDate(1);
     let dotw = curMonthObj.getDay();
@@ -220,29 +221,58 @@ function setupCalendar(monthOffset = 0) {
 
             let taskStartDate;
             let taskStartAbsoluteDate = taskStart.getDate();
-            if(taskStartMonth == month) // if same months
+            if(taskStartYear == year && taskStartMonth == month) // if same months
                 taskStartDate = taskStartAbsoluteDate + visibleDaysInPrevMonth; // set to whatever the date is
-            else if(taskStartMonth == prevMonth && taskStartAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth)) // if part of the visible prev month
+            else if(taskStartYear == prevMonthYear && taskStartMonth == prevMonth && taskStartAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth)) // if part of the visible prev month
                 taskStartDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskStartAbsoluteDate); // set date to whatever the date is (in the prev month)
-            else if(taskStartMonth == nextMonth && taskStartAbsoluteDate <= visibleDaysInPrevMonth) // if part of the visible next month
+            else if(taskStartYear == nextMonthYear && taskStartMonth == nextMonth && taskStartAbsoluteDate <= visibleDaysInNextMonth) // if part of the visible next month
                 taskStartDate = visibleDaysInPrevMonth + daysInMonth + taskStartAbsoluteDate; // set date to whatever the date is (in the next month)
             else if(taskStartMonth < month || taskStartYear < year) // if it starts any earlier
                 taskStartDate = 0; // start from first day in calendar (including prev month if applicable)
 
             let taskEndDate;
             let taskEndAbsoluteDate = taskEnd.getDate();
-            if(taskEndMonth == month)
+            if(taskEndYear == year && taskEndMonth == month)
                 taskEndDate = taskEndAbsoluteDate + visibleDaysInPrevMonth;
-            else if(taskEndMonth == nextMonth && taskEndAbsoluteDate <= visibleDaysInNextMonth)
-                taskEndDate = visibleDaysInPrevMonth + daysInMonth + taskEndAbsoluteDate;
-            else if(taskEndMonth == prevMonth && taskEndAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth))
+            else if(taskEndYear == prevMonthYear && taskEndMonth == prevMonth && taskEndAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth))
                 taskEndDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskEndAbsoluteDate);
+            else if(taskEndYear == nextMonthYear && taskEndMonth == nextMonth && taskEndAbsoluteDate <= visibleDaysInNextMonth)
+                taskEndDate = visibleDaysInPrevMonth + daysInMonth + taskEndAbsoluteDate + 1; // unsure about the + 1, but it seems to be correct
             else if(taskEndMonth > month || taskEndYear > year)
                 taskEndDate = visibleDaysInPrevMonth + daysInMonth + visibleDaysInNextMonth;
             
+            let curDate
+            if(visibleDaysInPrevMonth != 0) {
+                curDate = new Date(prevMonthObj.getTime());
+                curDate.setDate((daysInPrevMonth + 1) - (visibleDaysInPrevMonth - 1));
+            } else {
+                curDate = new Date(curMonthObj.getTime());
+            }
+            curDate.setDate(curDate.getDate() + taskStartDate); // offset
+            let dueDate;
+            let upcomingDate;
+            if(t.optionals.due) {
+                dueDate = new Date(t.due);
+                setDateObjToDayStart(dueDate);
+                upcomingDate = new Date(dueDate.getTime());
+                upcomingDate.setDate(upcomingDate.getDate() - 1);
+            } else {
+                dueDate = null;
+                upcomingDate = null;
+            }
+
             for(let i = taskStartDate; i <= taskEndDate; i++) {
-                if(t.dotw[i % 7] && t.active) // dotw and active check
-                    days[i].addTask(t);
+                let day = days[i];
+                if(t.dotw[i % 7] && t.active) {// dotw and active check
+                    day.addTask(t);
+                    if(dueDate != null) {
+                        if(curDate.getTime() == upcomingDate.getTime())
+                            t.setToApproaching(day.id, 0)
+                        else if(curDate.getTime() >= dueDate.getTime())
+                            t.setToApproaching(day.id, 1)
+                    }
+                }
+                curDate.setDate(curDate.getDate() + 1);
             }
         }
     }
@@ -251,11 +281,8 @@ function setupCalendar(monthOffset = 0) {
 let curMonthOffset = 0;
 
 function changeMonthBtnOnclick(increment) {
-    //if(new Date().getMonth() + curMonthOffset + increment >= 0) {
-        curMonthOffset += increment;
-        setupCalendar(curMonthOffset);
-    //} else
-    //    openModal("Cannot change years");
+    curMonthOffset += increment;
+    setupCalendar(curMonthOffset);
 }
 
 document.getElementById("prevMonthBtn").onclick = function() {

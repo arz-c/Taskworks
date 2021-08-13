@@ -150,7 +150,7 @@ class Task {
         }
     }
 
-    _approachingTimeoutCallback(context, type) { // type: 0 = upcoming, 1 = overdue 
+    _approachingTimeoutCallback(context, type) { // type: 0 = upcoming, 1 = overdue
         let table = context.elements.table;
         if(table.className.indexOf((type == 0) ? " overdue" : " upcoming") != -1) {
             table.className = table.className.replace((type == 0) ? " overdue" : " upcoming", "");

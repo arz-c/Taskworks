@@ -69,7 +69,7 @@ class Task {
         }
     }
 
-    static _numericToWrittenDate(numericDate) {
+    /*static _numericToWrittenDate(numericDate) {
         // a numeric date follows: YYYY-MM-DD
         // a written date follows: Mon #
         let date = new Date(numericDate);
@@ -90,7 +90,7 @@ class Task {
           if (a[i] !== b[i]) return false;
         }
         return true;
-    }
+    }*/
 
     _updateCheckByList(day) {
         let e = this.elements[day];  
@@ -120,7 +120,7 @@ class Task {
             }, object: this.objectify()});
     }
 
-    _getInfoStrings() {
+    /*_getInfoStrings() {
         // Doing Date String
         let doingString = "Do: ";
         if(this.doingStart == this.doingEnd) {
@@ -136,7 +136,7 @@ class Task {
         let dotwString = "";
         /*if(Task._areArraysEqual(this.dotw, [true, true, true, true, true, true, true]))
             dotwString = "All days";
-        else*/ if(Task._areArraysEqual(this.dotw, [true, false, false, false, false, false, true]))
+        else if(Task._areArraysEqual(this.dotw, [true, false, false, false, false, false, true]))
             dotwString = "Weekends";
         else if(Task._areArraysEqual(this.dotw, [false, true, true, true, true, true, false]))
             dotwString = "Weekdays";
@@ -159,11 +159,18 @@ class Task {
             dotw: dotwString,
             priority: "Priority: " + priorityString.toLowerCase()
         };
+    }*/
+
+    setToApproaching(day, type) { // type: 0 = upcoming, 1 = overdue
+        let table = this.elements[day].table;
+        if(table.className.indexOf((type == 0) ? " overdue" : " upcoming") != -1) {
+            table.className = table.className.replace((type == 0) ? " overdue" : " upcoming", "");
+        }
+        table.className += (type == 0) ? " upcoming" : " overdue";
     }
 
     createTable(parent, id) { // id is a unique identifier (which Day is setting as its unique date number) used for storing the specific set of elements into this.elements
         // SETUP
-        let info = this._getInfoStrings();
         if(this.elements == undefined) // if this is the first time the table is being drawn
             this.elements = {};
         let e = this.elements;
@@ -221,14 +228,4 @@ class Task {
         this._updateCheckByList(id);
         if(!this.checked) this._setCheckByDay(id, this.checkedByDay[id], false); // set initial state of checkbox (save = false)
     }
-
-    /*delete() {
-        if(this.list)
-            this.list.removeTask(this);
-        for(let d of this.elements) {
-            this.elements[d].table.remove();
-        }
-        pushToDB("lists", "edit", {index: allLists.indexOf(this.list), object: this.list.objectify()}); // since list holds task data, updating list in database
-        delete this;
-    }*/
 }

@@ -201,8 +201,16 @@ hr {
     color: black !important;
 }
 
+.task.upcoming .titleCol {
+    box-shadow: inset 0 0px 0 white, inset 0 -0.15em 0 goldenrod;
+}
+
+.task.overdue .titleCol {
+    box-shadow: inset 0 0px 0 white, inset 0 -0.15em 0 maroon;
+}
+
 .day.overdue .task * {
-    color: rgb(225, 0, 0);
+    color: red;
 }
 
 .task .titleCol {
