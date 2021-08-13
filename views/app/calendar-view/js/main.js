@@ -210,8 +210,10 @@ function setupCalendar(monthOffset = 0) {
 
     // Looping through all tasks and adding them to the calendar
     for(let t of allTasks) {
+        // these tasks don't need to be normalized (date + 1) because later in the code, it is expecting the date to be - 1 (i.e., Jan 1st = Jan 0th according to code)
         let taskStart = new Date(t.doingStart);
         let taskEnd = (!t.optionals.doingEnd) ? taskStart : new Date(t.doingEnd); // task end is an optional property
+        
         if(_isDateRangeOverlap(taskStart, taskEnd, calendarStart, calendarEnd)) { // if the task's start and end overlap with calendar's start and end
             let taskStartYear = taskStart.getYear();
             let taskStartMonth = taskStart.getMonth();
@@ -253,6 +255,7 @@ function setupCalendar(monthOffset = 0) {
             let upcomingDate;
             if(t.optionals.due) {
                 dueDate = new Date(t.due);
+                dueDate.setDate(dueDate.getDate() + 1); // normalize
                 setDateObjToDayStart(dueDate);
                 upcomingDate = new Date(dueDate.getTime());
                 upcomingDate.setDate(upcomingDate.getDate() - 1);
