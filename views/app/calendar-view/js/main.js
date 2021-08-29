@@ -158,7 +158,6 @@ function setupCalendar(monthOffset = 0) {
                     days[i].setToOverdue();
                 }
             }
-            console.log(yesterday.getDate() + dayOffset - 1, today.getDate() + dayOffset - 1)
             setTimeout(_setTodayTimeout.bind(this), 24 * 60 * 60 * 1000 + 500); // fresh day is garunteed here; +500 to ensure day has changed in JS's Day object
             console.log("New day has been set");
         }
@@ -224,13 +223,13 @@ function setupCalendar(monthOffset = 0) {
             let taskStartDate;
             let taskStartAbsoluteDate = taskStart.getDate();
             if(taskStartYear == year && taskStartMonth == month) // if same months
-                taskStartDate = taskStartAbsoluteDate + visibleDaysInPrevMonth; // set to whatever the date is
+                taskStartDate = taskStartAbsoluteDate + visibleDaysInPrevMonth;
             else if(taskStartYear == prevMonthYear && taskStartMonth == prevMonth && taskStartAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth)) // if part of the visible prev month
-                taskStartDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskStartAbsoluteDate); // set date to whatever the date is (in the prev month)
+                taskStartDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskStartAbsoluteDate)
             else if(taskStartYear == nextMonthYear && taskStartMonth == nextMonth && taskStartAbsoluteDate <= visibleDaysInNextMonth) // if part of the visible next month
-                taskStartDate = visibleDaysInPrevMonth + daysInMonth + taskStartAbsoluteDate; // set date to whatever the date is (in the next month)
+                taskStartDate = visibleDaysInPrevMonth + daysInMonth + 1 + taskStartAbsoluteDate;
             else if(taskStartMonth < month || taskStartYear < year) // if it starts any earlier
-                taskStartDate = 0; // start from first day in calendar (including prev month if applicable)
+                taskStartDate = 0;
 
             let taskEndDate;
             let taskEndAbsoluteDate = taskEnd.getDate();
@@ -239,7 +238,7 @@ function setupCalendar(monthOffset = 0) {
             else if(taskEndYear == prevMonthYear && taskEndMonth == prevMonth && taskEndAbsoluteDate >= (daysInPrevMonth - visibleDaysInPrevMonth))
                 taskEndDate = visibleDaysInPrevMonth - 1 - (daysInPrevMonth - taskEndAbsoluteDate);
             else if(taskEndYear == nextMonthYear && taskEndMonth == nextMonth && taskEndAbsoluteDate <= visibleDaysInNextMonth)
-                taskEndDate = visibleDaysInPrevMonth + daysInMonth + taskEndAbsoluteDate + 1; // unsure about the + 1, but it seems to be correct
+                taskEndDate = visibleDaysInPrevMonth + daysInMonth + 1 + taskEndAbsoluteDate; // unsure about the + 1, but it seems to be correct
             else if(taskEndMonth > month || taskEndYear > year)
                 taskEndDate = visibleDaysInPrevMonth + daysInMonth + visibleDaysInNextMonth;
             
