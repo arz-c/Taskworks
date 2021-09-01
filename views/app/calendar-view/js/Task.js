@@ -1,5 +1,9 @@
 class Task {
     constructor(data = {}) {
+        const isNotEmpty = function(x) {
+            return !(x == undefined || x == "[]");
+        }
+
         let todayStr = dateObjToNumericDate(new Date());
         let tmrwStr = new Date();
         tmrwStr.setDate(tmrwStr.getDate() + 1);
@@ -10,19 +14,19 @@ class Task {
         this.title = data.title || "New task";
         this.description = data.description || "";
 
-        this.labelIndices = (data.labelIndices != undefined) ? data.labelIndices.map(x => parseInt(x)) : [];
+        this.labelIndices = isNotEmpty(data.labelIndices) ? data.labelIndices.map(x => parseInt(x)) : [];
         this.mainLabel = parseInt(data.mainLabel) || 0;  // used to determine which label the task will use as its border colour; set to 0 by default, but when it's used, a check is done to ensure task.labelIndices has a 0th element
 
         this.doingStart = data.doingStart || todayStr;
         this.doingEnd = data.doingEnd || todayStr;
         this.due = data.due || tmrwStr;
-        this.dotw = (data.dotw != undefined) ? data.dotw.map(x => x == "true") : [true, true, true, true, true, true, true]; // days of the week
+        this.dotw = isNotEmpty(data.dotw) ? data.dotw.map(x => x == "true") : [true, true, true, true, true, true, true]; // days of the week
         //this.frequency = parseInt(data.frequency) || 0;
-        this.priority = (data.priority != undefined) ? parseInt(data.priority) : 1;
+        this.priority = isNotEmpty(data.priority) ? parseInt(data.priority) : 1;
         
-        this.active = (data.active != undefined) ? (data.active == "true") : true;
-        this.checked = (data.checked != undefined) ? (data.checked == "true") : false;
-        this.checkedByDay = (data.checkedByDay != undefined) ? new function() {
+        this.active = isNotEmpty(data.active) ? (data.active == "true") : true;
+        this.checked = isNotEmpty(data.checked) ? (data.checked == "true") : false;
+        this.checkedByDay = isNotEmpty(data.checkedByDay) ? new function() {
             let op = {};
             for(let key in data.checkedByDay)
                 op[key] = data.checkedByDay[key] == "true" // string => bool
@@ -30,12 +34,15 @@ class Task {
         } : [];
 
         this.optionals = {
-            doingEnd: (data.optionals != undefined) ? data.optionals.doingEnd == "true" : false,
-            due: (data.optionals != undefined) ? data.optionals.due == "true" : false
+            doingEnd: isNotEmpty(data.optionals) ? data.optionals.doingEnd == "true" : false,
+            due: isNotEmpty(data.optionals) ? data.optionals.due == "true" : false
         };
         
-        this.list = (data.listIndex != undefined) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
+        this.list = isNotEmpty(data.listIndex) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
         this.days = {}; // not being stored in db; this property is also always set by parent
+        
+        this.totalTasks = 0; // this number is set in main.js
+        this.checkedTasks = 0; // this number is incremented as tasks get checked, and compared with totalTasks
     }
 
     objectify() {
@@ -69,29 +76,6 @@ class Task {
         }
     }
 
-    /*static _numericToWrittenDate(numericDate) {
-        // a numeric date follows: YYYY-MM-DD
-        // a written date follows: Mon #
-        let date = new Date(numericDate);
-        // increasing date by 1 because creating Date object using the numeric date format described above sets date 1 day behind for some reason
-        let month = MONTH_STRINGS[date.getMonth()];
-        if(date.getFullYear() != new Date().getFullYear())  // if parameter date's year is different than today's year
-            return month + " " + date.getFullYear().toString().substr(0); // return YYY Mon
-        else
-            return month + " " + (date.getDate() + 1); // return Mon DD
-    }
-
-    static _areArraysEqual(a, b) {
-        if (a === b) return true;
-        if (a == null || b == null) return false;
-        if (a.length !== b.length) return false;
-      
-        for (var i = 0; i < a.length; ++i) {
-          if (a[i] !== b[i]) return false;
-        }
-        return true;
-    }*/
-
     _updateCheckByList(day) {
         let e = this.elements[day];  
         e.doneCheckbox.checked = this.checked;
@@ -108,58 +92,39 @@ class Task {
         let e = this.elements[day];
         e.doneCheckbox.checked = val;
         let table = e.table;
-        if(val)
+
+        if(val) {
             table.className += " dayChecked";
-        else
+            this.checkedTasks++;
+        } else {
             table.className = table.className.replace(" dayChecked", "");
+            if(save) this.checkedTasks--; // only do this if user is checking
+        }
+
         this.days[day].updateTaskPosition(this);
-        if(save)
+
+        if(save) { // save only = true when user is clicking checkbox as opposed to the script
+            this.scanForCheckByList();
             pushToDB("tasks", "edit", {index: {
                 list: allLists.indexOf(this.list),
                 task: this.list.tasks.indexOf(this)
             }, object: this.objectify()});
+        }
     }
 
-    /*_getInfoStrings() {
-        // Doing Date String
-        let doingString = "Do: ";
-        if(this.doingStart == this.doingEnd) {
-            doingString += Task._numericToWrittenDate(this.doingStart);
-        } else {
-            doingString += 
-                Task._numericToWrittenDate(this.doingStart)
-                + " - " +
-                Task._numericToWrittenDate(this.doingEnd)
-        }
-
-        // DOTW String
-        let dotwString = "";
-        /*if(Task._areArraysEqual(this.dotw, [true, true, true, true, true, true, true]))
-            dotwString = "All days";
-        else if(Task._areArraysEqual(this.dotw, [true, false, false, false, false, false, true]))
-            dotwString = "Weekends";
-        else if(Task._areArraysEqual(this.dotw, [false, true, true, true, true, true, false]))
-            dotwString = "Weekdays";
-        else  {
-            for(let i = 0; i < this.dotw.length; i++) {
-                if(this.dotw[i])
-                    dotwString += DAY_STRINGS[i] + " ";
+    scanForCheckByList() {
+        if(this.checkedTasks == this.totalTasks) {
+            this.checked = true;
+            for(let day in this.elements) {
+                this._updateCheckByList(day);
             }
-            dotwString = dotwString.slice(0, dotwString.length - 1); // get rid of last space
+        } else {
+            this.checked = false;
+            for(let day in this.elements) {
+                this._updateCheckByList(day);
+            }
         }
-
-        // Priority String
-        let priorityString = PRIORITY_LEVELS[this.priority];
-
-        return {
-            title: this.title,
-            labelIndices: (this.labelIndices.length) ? this.labelIndices : "",
-            doing: doingString,
-            due: "Due: " + Task._numericToWrittenDate(this.due),
-            dotw: dotwString,
-            priority: "Priority: " + priorityString.toLowerCase()
-        };
-    }*/
+    }
 
     setToApproaching(day, type) { // type: 0 = upcoming, 1 = overdue
         let table = this.elements[day].table;
@@ -209,11 +174,12 @@ class Task {
         let doneCheckbox = Form.createInputElement("checkbox", "done", false);
         doneCheckbox.className = "doneTaskBox";
         doneCheckbox.onclick = function() {
-            if(this.checked) { // if user wants to uncheck a task that is checked by list
+            /*if(this.checked) { // if user wants to uncheck a task that is checked by list
                 e[id].doneCheckbox.checked = true; // revert the damage
                 openModal("<b>Cannot uncheck task that is super-checked. Please uncheck the task in List View first.<b>")
-            } else
+            } else {*/
                 this._setCheckByDay(id, e[id].doneCheckbox.checked, true);
+            //}
         }.bind(this);
         e[id].doneCheckbox = doneCheckbox;
         buttonCol.appendChild(doneCheckbox);

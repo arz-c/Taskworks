@@ -50,7 +50,13 @@ function setupCalendar(monthOffset = 0) {
     // Creating month objects for prev, cur, and next months
     let curMonthObj = new Date();
     setDateObjToDayStart(curMonthObj);
-    curMonthObj.setMonth(curMonthObj.getMonth() + monthOffset);
+    //curMonthObj.setMonth(curMonthObj.getMonth() + monthOffset);
+    for(let i = 0; i < Math.abs(monthOffset); i++) {
+        if(monthOffset > 0)
+            curMonthObj.setDate(_getDaysInMonth(curMonthObj) + 1 + 1); // first + 1 because 0-based, second to carry over to next month
+        else
+            curMonthObj.setDate(-1);
+    }
     curMonthObj.setDate(1);
     let dotw = curMonthObj.getDay();
     let year = curMonthObj.getYear();
@@ -191,18 +197,22 @@ function setupCalendar(monthOffset = 0) {
     // Creating calendar start and end objefcts so they can be passed to _isDateRangeOverlap
     let calendarStart = new Date(curMonthObj.getTime());
     if(visibleDaysInPrevMonth != 0) { // there are visible days from the prev month
+        calendarStart.setYear(prevMonthYear + 1900);
         calendarStart.setMonth(prevMonth);
         calendarStart.setDate(daysInPrevMonth - visibleDaysInPrevMonth);
     } else { // there are not visible days from the prev month
+        calendarStart.setYear(year + 1900);
         calendarStart.setMonth(month);
         calendarStart.setDate(0);
     }
 
    let calendarEnd = new Date(curMonthObj.getTime());
     if(visibleDaysInNextMonth != 0) { // there are visible days from the next month
+        calendarEnd.setYear(nextMonthYear + 1900);
         calendarEnd.setMonth(nextMonth);
         calendarEnd.setDate(visibleDaysInNextMonth);
     } else { // there are not visible days from the next month
+        calendarEnd.setYear(year + 1900);
         calendarEnd.setMonth(month);
         calendarEnd.setDate(daysInMonth);
     }

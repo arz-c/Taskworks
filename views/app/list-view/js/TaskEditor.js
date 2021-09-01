@@ -270,6 +270,10 @@ class TaskEditor {
                 }
             }
         }
+        // reset main label if old main label has been unchecked as a label alltogether
+        if(formData["mainLabel"] >= formData["labelIndices"].length)
+            formData["mainLabel"] = 0;
+        
         TaskEditor.selectedTask.updateInfo(formData);
         TaskEditor.selectedTask.updateTable();
         TaskEditor.closeWindow();

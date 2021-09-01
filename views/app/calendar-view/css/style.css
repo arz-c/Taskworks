@@ -187,7 +187,7 @@ hr {
 }
 
 .task.listChecked {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.4) 0 0);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4) 0 0) !important;
     text-decoration: line-through;
 }
 

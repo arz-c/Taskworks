@@ -1,7 +1,11 @@
 class List {
     constructor(data = {}) {
+        const isNotEmpty = function(x) {
+            return !(x == undefined || x == "[]");
+        }
+
         this.title = data.title || "New list";
-        this.checked = (data.checked != undefined) ? data.checked == "true" : false;
+        this.checked = isNotEmpty(data.checked) ? data.checked == "true" : false;
         this.tasks = []; // if tasks were in the "data" parameter, they are added to this list at the bottom of the constructor (so the HTML table is ready for tasks to be added to)
 
         // TABLE
@@ -70,7 +74,7 @@ class List {
         }
 
         // if tasks were already in the database, create tasks using info provided by the DB and add them to this list
-        if(data.tasks != undefined) {
+        if(isNotEmpty(data.tasks)) {
             for(let i = 0; i < data.tasks.length; i++) {
                 this.addTask(new Task(data.tasks[i])); 
             }

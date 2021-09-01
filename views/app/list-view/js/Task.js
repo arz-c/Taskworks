@@ -5,24 +5,28 @@ class Task {
         tmrwStr.setDate(tmrwStr.getDate() + 1);
         tmrwStr = dateObjToNumericDate(tmrwStr);
 
-        // if undefined, will set to a default value, else, will set to given value
+        // if empty, will set to a default value, else, will set to given value
         // the (data.x != undefined) is only needed for those that require a type change from string -> other type (because everything from database is always in string form)
+        const isNotEmpty = function(x) {
+            return !(x == undefined || x == "[]");
+        }
+
         this.title = data.title || "New task";
         this.description = data.description || "";
 
-        this.labelIndices = (data.labelIndices != undefined) ? data.labelIndices.map(x => parseInt(x)) : [];
+        this.labelIndices = isNotEmpty(data.labelIndices) ? data.labelIndices.map(x => parseInt(x)) : [];
         this.mainLabel = parseInt(data.mainLabel) || 0; // used in Calendar View to determine which label the task will use as its border colour; set to 0 by default, but when it's used, a check is done to ensure task.labelIndices has a 0th element
         
         this.doingStart = data.doingStart || todayStr;
         this.doingEnd = data.doingEnd || todayStr;
         this.due = data.due || tmrwStr;
-        this.dotw = (data.dotw != undefined) ? data.dotw.map(x => x == "true") : [true, true, true, true, true, true, true]; // days of the week
+        this.dotw = isNotEmpty(data.dotw) ? data.dotw.map(x => x == "true") : [true, true, true, true, true, true, true]; // days of the week
         //this.frequency = parseInt(data.frequency) || 0;
-        this.priority = (data.priority != undefined) ? parseInt(data.priority) : 1;
+        this.priority = isNotEmpty(data.priority) ? parseInt(data.priority) : 1;
         
-        this.active = (data.active != undefined) ? (data.active == "true") : true;
-        this.checked = (data.checked != undefined) ? (data.checked == "true") : false;
-        this.checkedByDay = (data.checkedByDay != undefined) ? new function() {
+        this.active = isNotEmpty(data.active) ? (data.active == "true") : true;
+        this.checked = isNotEmpty(data.checked) ? (data.checked == "true") : false;
+        this.checkedByDay = isNotEmpty(data.checkedByDay) ? new function() {
             let op = {};
             for(let key in data.checkedByDay)
                 op[key] = data.checkedByDay[key] == "true" // string => bool
@@ -30,11 +34,11 @@ class Task {
         } : [];
 
         this.optionals = {
-            doingEnd: (data.optionals != undefined) ? data.optionals.doingEnd == "true" : false,
-            due: (data.optionals != undefined) ? data.optionals.due == "true" : false
+            doingEnd: isNotEmpty(data.optionals) ? data.optionals.doingEnd == "true" : false,
+            due: isNotEmpty(data.optionals) ? data.optionals.due == "true" : false
         };
         
-        this.list = (data.listIndex != undefined) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
+        this.list = isNotEmpty(data.listIndex) ? allLists[parseInt(data.listIndex)] : null; // this property is always set by its parent List, it will only be in "data" when fetched from database
 
         // TIMEOUTS
         // setting timeout for approaching tasks (upcoming/overdue)

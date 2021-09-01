@@ -1,7 +1,11 @@
 class Label {
     constructor(data = {}) {
+        const isNotEmpty = function(x) {
+            return !(x == undefined || x == "[]");
+        }
+
         this.title = data.title || "New label";
-        this.colour = (data.colour != undefined) ? data.colour.map(x => parseInt(x)) : [0, 0, 0];
+        this.colour = isNotEmpty(data.colour) ? data.colour.map(x => parseInt(x)) : [0, 0, 0];
         // IMPORTANT: whenever a new label is added to allLabels, TaskEditor.updateLabels() must be called
         // it can't be called from here because by the time it would be called, the new label would not be appended to allLabels yet
         

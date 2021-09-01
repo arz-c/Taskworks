@@ -35,9 +35,16 @@ function _serialize(obj, parent = null) {
             else
                 oo = o[p];
             for(let pp in oo) {
-                if(typeof(oo[pp]) == "object")
-                    str.push(_serialize(oo[pp], (parent != null) ? parent + "[" + p + "]" + "[" + pp + "]" : p + "[" + pp + "]"));
-                else {
+                if(typeof(oo[pp]) == "object") {
+                    if(oo[pp].length > 0)
+                        str.push(_serialize(oo[pp], (parent != null) ? parent + "[" + p + "]" + "[" + pp + "]" : p + "[" + pp + "]"));
+                    else
+                        str.push(
+                            ((parent != null) ? parent + "[" + p + "]" + "[" + pp + "]" : p + "[" + pp + "]")
+                            + "=[]"
+                        );
+                
+                } else {
                     if(parent != null)
                         str.push(parent + "[" + encodeURIComponent(p) + "]" + "[" + encodeURIComponent(pp) + "]=" + encodeURIComponent(oo[pp]))
                     else
